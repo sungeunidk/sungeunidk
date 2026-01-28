@@ -3,155 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>시니어 모델 데뷔 패키지</title>
+    <title>시니어 모델 더 비기닝</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        :root {
+            --gold-color: #D4AF37;
+            --bg-color: #FFF9ED; /* 따뜻한 느낌의 연한 베이지 */
+            --text-dark: #2c2c2c;
+            --accent-red: #E74C3C;
+        }
 
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Noto Sans KR', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f9f9f9;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.5;
         }
 
-        /* 헤더 부분 */
-        .header {
-            background-color: #000;
-            color: #fff;
-            padding: 60px 20px;
+        /* 모바일 전용 컨테이너 */
+        .mobile-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            min-height: 100vh;
+        }
+
+        /* 상단 히어로 섹션 */
+        .hero {
+            padding: 40px 20px 30px;
             text-align: center;
+            background: linear-gradient(135deg, #232526, #414345); /* 고급스러운 어두운 그라데이션 */
+            color: #fff;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
         }
 
-        .header h2 {
-            font-size: 2rem;
-            color: #ffde00;
+        .hero-sub {
+            font-size: 1.2rem;
+            opacity: 0.9;
             margin-bottom: 10px;
         }
 
-        .header h1 {
-            font-size: 3.5rem;
-            margin: 0;
-            word-break: keep-all;
+        .hero-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 0 20px 0;
+            line-height: 1.3;
+            color: #FFD700; /* 제목도 금빛 포인트 */
         }
 
-        /* 금색 번쩍이는 효과 */
-        .gold-price {
-            font-size: 5rem;
-            font-weight: 900;
-            margin: 30px 0;
-            background: linear-gradient(to right, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
-            animation: shine 3s infinite linear;
-            background-size: 200% auto;
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* 선착순 알림 */
-        .alert-box {
-            background-color: #ff0000;
-            color: #fff;
-            padding: 15px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 20px;
-            border-radius: 50px;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* 컨텐츠 영역 */
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 20px;
+        /* 핵심 가격 섹션 (은은한 금빛) */
+        .price-box {
+            background-color: #fff;
+            margin: -30px 20px 0; /* 위로 살짝 겹치게 */
+            padding: 30px 20px;
+            border-radius: 20px;
             text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
         }
 
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            text-align: left;
-            display: inline-block;
-            font-size: 1.4rem;
-        }
-
-        .feature-list li {
+        .package-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #555;
             margin-bottom: 15px;
         }
 
-        .feature-list li::before {
-            content: "✅";
-            margin-right: 10px;
+        .gold-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            /* 너무 번쩍거리지 않는 고급스러운 골드 그라데이션 */
+            background: linear-gradient(to right, #AA771C, #FBF5B7, #AA771C);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite; /* 천천히 은은하게 빛남 */
         }
 
-        /* 버튼 */
-        .cta-button {
-            display: block;
-            background: linear-gradient(180deg, #ff5f6d, #ffc371);
-            color: white;
-            padding: 30px;
-            font-size: 2rem;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 15px;
-            margin-top: 40px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        @keyframes shimmer {
+            to { background-position: 200% center; }
         }
 
-        .footer-note {
-            font-size: 1.1rem;
-            color: #666;
+        /* 긴급 알림 박스 (덜 공격적인 디자인) */
+        .urgency-alert {
             margin-top: 20px;
+            background-color: #FFF0F0;
+            color: var(--accent-red);
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: inline-block;
+            border: 2px solid var(--accent-red);
         }
 
-        /* 모바일 대응 */
-        @media (max-width: 600px) {
-            .header h1 { font-size: 2.2rem; }
-            .gold-price { font-size: 3rem; }
-            .cta-button { font-size: 1.5rem; }
+        /* 상세 내용 섹션 */
+        .content-section {
+            padding: 40px 25px;
         }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .benefit-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefit-list li {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            padding-left: 40px;
+            position: relative;
+            font-weight: 500;
+        }
+
+        /* 체크 아이콘 */
+        .benefit-list li::before {
+            content: '👑';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.4rem;
+        }
+
+        /* 하단 고정 버튼 영역 */
+        .fixed-bottom-cta {
+            position: sticky;
+            bottom: 0;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .call-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to right, #D4AF37, #C5A028);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .call-button:active {
+            transform: scale(0.98);
+        }
+        
+        .call-subtext {
+            display: block;
+            font-size: 1rem;
+            font-weight: normal;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2>"아직 늦지 않았습니다"</h2>
-        <h1>당신도 런웨이의 주인공이<br>될 수 있습니다!</h1>
-        
-        <div class="gold-price">1,000,000원</div>
-        <br>
-        <div class="alert-box">📢 선착순 딱 5명 마감 임박!</div>
-    </div>
+    <div class="mobile-container">
+        <header class="hero">
+            <div class="hero-sub">"아직 늦지 않았습니다."</div>
+            <h1 class="hero-title">당신의 가장 빛나는 순간<br>시니어 모델 데뷔 프로젝트</h1>
+        </header>
 
-    <div class="container">
-        <h3>딱 한 달 만에 완성하는 모델 데뷔 코스</h3>
-        <ul class="feature-list">
-            <li><strong>워킹 수업:</strong> 굽은 등 펴고 당당한 걸음걸이</li>
-            <li><strong>화보 촬영:</strong> 전문 작가가 찍어주는 인생 사진</li>
-            <li><strong>메이크업:</strong> 10년은 젊어 보이는 전문 스타일링</li>
-            <li><strong>데뷔 기회:</strong> 시니어 패션쇼 우선 선발권</li>
-        </ul>
+        <section class="price-box">
+            <div class="package-name">워킹 + 메이크업 + 화보 풀패키지</div>
+            <div class="gold-number">1,000,000원</div>
+            
+            <div class="urgency-alert">
+                🚨 1기 선착순 마감 임박 (잔여 3석)
+            </div>
+            <p style="color:#888; margin-top: 10px;">(추가 비용 없는 최종 금액입니다)</p>
+        </section>
 
-        <a href="tel:010-0000-0000" class="cta-button">
-            지금 전화로 간편 신청하기<br>
-            <span style="font-size: 1.2rem; font-weight: normal;">(상담은 무료입니다)</span>
-        </a>
+        <section class="content-section">
+            <h2 class="section-title">무엇을 경험하게 되나요?</h2>
+            <ul class="benefit-list">
+                <li><strong>자세 교정 워킹:</strong> 당당해지는 걸음걸이</li>
+                <li><strong>전문가 스타일링:</strong> 나에게 맞는 색과 메이크업</li>
+                <li><strong>인생 화보 촬영:</strong> 자녀들이 놀랄 멋진 사진</li>
+                <li><strong>새로운 친구들:</strong> 함께 꿈꾸는 멋진 동료들</li>
+            </ul>
+        </section>
 
-        <p class="footer-note">※ 현재 문의 폭주로 전화 연결이 지연될 수 있습니다.</p>
+        <div class="fixed-bottom-cta">
+            <a href="tel:010-0000-0000" class="call-button">
+                지금 바로 전화 상담하기
+                <span class="call-subtext">복잡한 입력 없이, 통화로 신청하세요!</span>
+            </a>
+        </div>
     </div>
 
 </body>
