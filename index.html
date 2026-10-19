@@ -1,49 +1,53 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f5">
   <title>응답해주세요</title>
+
   <style>
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
-      display: grid;
-      place-items: center;
       padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       background: #f7f7f5;
       color: #222;
-      font-family: -apple-system, BlinkMacSystemFont,
-        "Noto Sans KR", sans-serif;
+      font-family: Arial, "Noto Sans KR", sans-serif;
     }
 
     main { width: 100%; max-width: 440px; }
 
     h1 {
-      margin-bottom: 12px;
       font-size: 30px;
       font-weight: 600;
       letter-spacing: -1px;
+      margin-bottom: 12px;
     }
 
-    p {
-      margin-bottom: 28px;
+    .description {
       color: #777;
-      line-height: 1.6;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 28px;
     }
 
     textarea {
+      display: block;
       width: 100%;
-      min-height: 190px;
+      min-height: 200px;
       padding: 16px;
       border: 1px solid #ddd;
       border-radius: 10px;
-      background: white;
+      background: #fff;
       font: inherit;
       font-size: 16px;
+      line-height: 1.7;
       resize: vertical;
       outline: none;
     }
@@ -58,7 +62,7 @@
       border-radius: 10px;
       background: #222;
       color: white;
-      font: inherit;
+      font-size: 15px;
       cursor: pointer;
     }
 
@@ -70,75 +74,62 @@
     #status {
       min-height: 24px;
       margin-top: 12px;
-      font-size: 14px;
       color: #b42318;
+      font-size: 13px;
+      line-height: 1.6;
     }
   </style>
 </head>
+
 <body>
   <main>
     <h1>응답해주세요</h1>
-    <p>전달하고 싶은 응답을 작성해주세요.</p>
+    <div class="description">
+      전달하고 싶은 응답을 작성해주세요.
+    </div>
 
     <form id="responseForm">
       <textarea
         id="response"
         name="response"
-        placeholder="응답을 입력해주세요."
         maxlength="5000"
+        placeholder="응답을 입력해주세요."
         required
       ></textarea>
 
-      <button id="submitButton" type="submit">전송</button>
+      <button id="submitButton" type="submit">
+        전송
+      </button>
+
       <div id="status" role="status" aria-live="polite"></div>
     </form>
-
-    <iframe
-      name="submitFrame"
-      id="submitFrame"
-      title="응답 제출"
-      hidden
-    ></iframe>
   </main>
 
   <script>
-    // 배포한 Google Apps Script 웹 앱 URL을 입력하세요.
-    const SCRIPT_URL = "YOUR_GOOGLE_SCRIPT_URL";
+    const SCRIPT_URL =
+      "https://script.google.com/macros/s/AKfycbyoHtdLvuaTJhzKpQI1hMdb3NZg5GB3uphs5hKPWZwXHEjPvxO2_d5-Nkv6Q4Ih-oCv/exec";
 
     const form = document.getElementById("responseForm");
+    const input = document.getElementById("response");
     const button = document.getElementById("submitButton");
     const status = document.getElementById("status");
-    const frame = document.getElementById("submitFrame");
 
     let submitting = false;
-    let frameReady = false;
 
-    frame.addEventListener("load", () => {
-      if (!frameReady) {
-        frameReady = true;
-        return;
-      }
-
-      if (submitting) {
-        window.location.href = "done.html";
-      }
-    });
-
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       if (submitting) return;
 
-      if (
-        !SCRIPT_URL.startsWith("https://script.google.com/") ||
-        SCRIPT_URL === "YOUR_GOOGLE_SCRIPT_URL"
-      ) {
-        status.textContent = "관리자 설정이 필요합니다.";
+      const response = input.value.trim();
+
+      if (!response) {
+        status.textContent = "응답을 입력해주세요.";
         return;
       }
 
-      if (!form.response.value.trim()) {
-        status.textContent = "응답 내용을 입력해주세요.";
+      if (response.length > 5000) {
+        status.textContent = "응답은 5000자 이내로 작성해주세요.";
         return;
       }
 
@@ -147,10 +138,27 @@
       button.textContent = "전송 중...";
       status.textContent = "";
 
-      form.action = SCRIPT_URL;
-      form.method = "POST";
-      form.target = "submitFrame";
-      form.submit();
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=UTF-8"
+          },
+          body: JSON.stringify({
+            response: response
+          })
+        });
+
+        window.location.href = "done.html";
+
+      } catch (error) {
+        submitting = false;
+        button.disabled = false;
+        button.textContent = "전송";
+        status.textContent =
+          "전송하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.";
+      }
     });
   </script>
 </body>
