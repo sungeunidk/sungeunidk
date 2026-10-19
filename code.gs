@@ -1,5 +1,5 @@
 
-const SPREADSHEET_ID = "YOUR_SPREADSHEET_ID";
+const SPREADSHEET_ID = "11XpLhQPE5af98HqsbF_A7RUKKpQBhtDFtSs3OD-kZP4";
 const SHEET_NAME = "응답";
 
 function doPost(e) {
