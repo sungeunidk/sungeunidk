@@ -51,11 +51,12 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: true }))
       .setMimeType(ContentService.MimeType.JSON);
 
-  } catch (error) {
-    console.error(
-      "응답 저장 실패: " + (error.stack || error.message || error)
-    );
-
-    throw error;
+ } catch (error) {
+  console.error("응답 저장 실패: " + error.message);
+  console.error(error.stack);
+  throw error;
+} finally {
+  if (lock.hasLock()) {
+    lock.releaseLock();
   }
 }
