@@ -107,7 +107,7 @@
 
   <script>
     const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbyOQukg5HnnV-iU3vysQjH0hHYo7OfiwHSIy9X8MA_KXLfjq1as2QUSbd9-PVISEhk7/exec";
+      "https://script.google.com/macros/s/AKfycbxOm-8YuZq9ratK6XxpY0rDaHTKAsN9xumeHzvdQh-37kZd59nWCaFRoVCDmbvmCBKe/exec";
 
     const form = document.getElementById("responseForm");
     const input = document.getElementById("response");
@@ -155,7 +155,7 @@
           throw new Error(result.error || "저장 실패");
         }
 
-        window.location.href = "done.html";
+        window.location.replace("done.html");
 
       } catch (error) {
         console.error(error);
