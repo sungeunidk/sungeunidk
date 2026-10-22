@@ -43,6 +43,20 @@
     }
     .link.fade { animation: fadeLine .8s ease both; }
 
+    /* 아직 이어지지 않은 "다음 연결" 미리보기: 흐린 점선 + 속이 빈 점 */
+    .link.ghost {
+      opacity: .22;
+      stroke-dasharray: 1 12;
+      animation: ghostLine 1s ease both;
+    }
+    .node.ghost {
+      fill: none;
+      stroke: #222;
+      stroke-width: 1.2;
+      opacity: .4;
+      animation: ghostIn 1s ease both, ghostPulse 2.6s ease-in-out 1s infinite;
+    }
+
     @keyframes pop {
       from { opacity: 0; transform: scale(0); }
       to   { opacity: 1; transform: scale(1); }
@@ -54,6 +68,18 @@
     @keyframes fadeLine {
       from { opacity: 0; }
       to   { opacity: .45; }
+    }
+    @keyframes ghostLine {
+      from { opacity: 0; }
+      to   { opacity: .22; }
+    }
+    @keyframes ghostIn {
+      from { opacity: 0; transform: scale(0); }
+      to   { opacity: .4; transform: scale(1); }
+    }
+    @keyframes ghostPulse {
+      0%, 100% { opacity: .25; transform: scale(.9); }
+      50%      { opacity: .55; transform: scale(1.2); }
     }
 
     main {
@@ -130,10 +156,14 @@
     #after.show #backButton { pointer-events: auto; }
 
     #thanks {
+      max-width: 520px;
+      padding: 0 24px;
       text-align: center;
       color: #555;
       font-size: 14px;
       line-height: 1.8;
+      white-space: pre-line;   /* \n 줄바꿈 반영 */
+      word-break: keep-all;
     }
 
     #backButton {
@@ -180,7 +210,8 @@
     const SCRIPT_URL =
       "https://script.google.com/macros/s/AKfycbxOm-8YuZq9ratK6XxpY0rDaHTKAsN9xumeHzvdQh-37kZd59nWCaFRoVCDmbvmCBKe/exec";
 
-    const MAX_NODES = 80; // 화면에 그릴 최대 점 개수 (최근 것만)
+    const MAX_NODES = 80;   // 화면에 그릴 최대 점 개수 (최근 것만)
+    const BRANCHES = true;  // true: 직전 점 외에 이전 응답 하나와도 연결 (그물 모양)
     const SVG_NS = "http://www.w3.org/2000/svg";
 
     const form = document.getElementById("responseForm");
@@ -194,8 +225,9 @@
     const svg = document.getElementById("web");
 
     let submitting = false;
-    let totalCount = 0; // 시트에 쌓인 응답 수
+    let totalCount = 0;   // 시트에 쌓인 응답 수
     let timers = [];
+    let ghostTimer = null;
 
     /* ---------- 위치: 번호마다 항상 같은 자리 ---------- */
     function rand(seed) {
@@ -210,6 +242,13 @@
         x: w * (0.06 + rand(index * 2 + 1) * 0.88),
         y: h * (0.08 + rand(index * 2 + 2) * 0.84)
       };
+    }
+
+    // i번째 응답이 (직전 점 말고) 추가로 이어지는 이전 응답 번호. 없으면 -1
+    // 번호로 정해지므로 새로고침해도 같은 그물이 나온다.
+    function branchOf(i) {
+      if (!BRANCHES || i < 2) return -1;
+      return Math.floor(rand(i * 7 + 3) * (i - 1)); // 0 ~ i-2
     }
 
     /* ---------- 그리기 ---------- */
@@ -229,10 +268,25 @@
       return l;
     }
 
+    // 다음 사람이 이어질 자리를 흐린 점선과 빈 점으로 미리 보여줌
+    function clearGhost() {
+      svg.querySelectorAll(".ghost").forEach((n) => n.remove());
+    }
+    function drawGhost() {
+      clearGhost();
+      if (totalCount === 0) return;
+      const a = posOf(totalCount - 1);
+      const b = posOf(totalCount);
+      svg.insertBefore(makeLink(a, b, "ghost"), svg.firstChild);
+      svg.appendChild(makeNode(b, "ghost"));
+    }
+
     // 기존 응답들을 순서대로 점선으로 연결해서 그림 (마지막 점은 깜빡임)
     function renderAll(animate) {
+      clearTimeout(ghostTimer);
       svg.innerHTML = "";
       const start = Math.max(0, totalCount - MAX_NODES);
+
       for (let i = start; i < totalCount; i++) {
         const p = posOf(i);
         const delay = (i - start) * 40 + "ms";
@@ -243,12 +297,23 @@
           svg.appendChild(link);
         }
 
+        const b = branchOf(i);
+        if (b >= start) {
+          const bLink = makeLink(posOf(b), p, animate ? "fade" : "");
+          if (animate) bLink.style.animationDelay = delay;
+          svg.appendChild(bLink);
+        }
+
         const isLast = i === totalCount - 1;
         const cls = isLast ? "latest" : (animate ? "fade" : "");
         const node = makeNode(p, cls);
         if (animate) node.style.animationDelay = delay;
         svg.appendChild(node);
       }
+
+      // 점들이 다 그려진 뒤에 "다음 연결" 미리보기 등장
+      const wait = animate ? (totalCount - start) * 40 + 600 : 0;
+      ghostTimer = setTimeout(drawGhost, wait);
     }
 
     // 새 응답: 이전 점에서 새 점까지 점선이 쭉 뻗어나감
@@ -257,13 +322,24 @@
       const to = posOf(newIndex);
       const from = newIndex > 0 ? posOf(newIndex - 1) : to;
 
-      // 이전의 깜빡이던 점은 멈추게
+      // 미리보기 점선은 지금 이어지는 선이 되므로 치우고, 이전 깜빡임은 멈춤
+      clearTimeout(ghostTimer);
+      clearGhost();
       svg.querySelectorAll(".node.latest").forEach((n) => {
         n.setAttribute("class", "node");
       });
 
       const line = makeLink(from, from);
       svg.insertBefore(line, svg.firstChild);
+
+      // 추가 연결선 (이전 응답 중 하나와)
+      const b = branchOf(newIndex);
+      const visibleStart = Math.max(0, newIndex + 1 - MAX_NODES);
+      if (b >= visibleStart) {
+        const bLink = makeLink(posOf(b), to, "fade");
+        bLink.style.animationDelay = "900ms";
+        svg.insertBefore(bLink, svg.firstChild);
+      }
 
       const duration = 1400;
       const t0 = performance.now();
@@ -277,6 +353,7 @@
           requestAnimationFrame(step);
         } else {
           svg.appendChild(makeNode(to, "latest"));
+          drawGhost(); // 새 점 뒤로 또 이어질 가능성
         }
       }
       requestAnimationFrame(step);
@@ -301,6 +378,12 @@
     })();
 
     window.addEventListener("resize", () => renderAll(false));
+
+    /* ---------- 문장 줄이기 ---------- */
+    function clip(text, max) {
+      const chars = Array.from(text.replace(/\s+/g, " "));
+      return chars.length > max ? chars.slice(0, max).join("") + "…" : chars.join("");
+    }
 
     /* ---------- 전송 ---------- */
     form.addEventListener("submit", async (event) => {
@@ -333,15 +416,28 @@
         const result = await res.json();
         if (!result.ok) throw new Error(result.error || "저장 실패");
 
+        // 서버가 알려준 정확한 순번으로 맞춤 (그 사이 다른 사람이 제출했을 수 있음)
+        if (Number(result.count) > 0) {
+          totalCount = Number(result.count) - 1; // 방금 응답을 뺀, 이전 응답 수
+          renderAll(false);
+        }
+        const prev = String(result.prev || "").trim(); // 바로 전 사람의 문장
+
         // 폼 사라지고 → 점선이 이어짐 → 문구와 버튼 등장
         formWrap.classList.add("hide");
         timers.push(setTimeout(connectNew, 500));
         timers.push(setTimeout(() => {
           const before = totalCount - 1; // 방금 응답 이전에 있던 응답 수
-          thanks.textContent =
-            before > 0
-              ? "당신의 응답이 " + before + "개의 응답과 이어졌어요."
-              : "첫 번째 응답이에요.";
+          if (before > 0 && prev) {
+            thanks.textContent =
+              "당신의 응답이 이 문장 뒤에 이어졌어요.\n" +
+              "“" + clip(prev, 60) + "”\n" +
+              "지금까지 " + before + "개의 응답이 이어져 있어요.";
+          } else if (before > 0) {
+            thanks.textContent = "당신의 응답이 " + before + "개의 응답과 이어졌어요.";
+          } else {
+            thanks.textContent = "첫 번째 응답이에요.";
+          }
           after.classList.add("show");
         }, 2000));
 
