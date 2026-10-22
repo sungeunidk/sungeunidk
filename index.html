@@ -4,6 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>응답해주세요.</title>
   <style>
     * { box-sizing: border-box; }
 
@@ -14,68 +15,70 @@
       --line: #deded8;
     }
 
+    html, body { margin: 0; }
+
     body {
-      margin: 0;
       background: var(--paper);
       color: var(--ink);
       font-family: "Noto Sans KR", Arial, sans-serif;
       min-height: 100vh;
-    }
-
-    header {
-      padding: 32px 5vw;
+      min-height: 100svh;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .eyebrow {
-      font-size: 10px;
-      letter-spacing: .2em;
-      color: var(--muted);
-    }
-
-    .index {
-      font-size: 11px;
-      color: var(--muted);
+      flex-direction: column;
     }
 
     main {
-      width: min(680px, 88vw);
-      margin: 12vh auto 0;
-      padding-bottom: 100px;
-    }
-
-    .number {
-      font-family: Georgia, serif;
-      font-size: 13px;
-      color: #a1a198;
-      margin-bottom: 28px;
+      flex: 1;
+      width: min(640px, 88vw);
+      margin: 0 auto;
+      padding: 10vh 0 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     h1 {
       font-weight: 400;
-      font-size: clamp(30px, 5vw, 54px);
-      line-height: 1.45;
-      letter-spacing: -.055em;
-      margin: 0 0 24px;
+      margin: 0 0 56px;
+      line-height: 1.35;
+      letter-spacing: -.04em;
+      min-height: 2.7em; /* 타자 효과 중 레이아웃이 흔들리지 않도록 */
     }
 
-    .intro {
-      color: #77776f;
-      font-size: 14px;
-      line-height: 2;
-      margin-bottom: 60px;
+    h1 .en {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(36px, 8vw, 68px);
+      letter-spacing: -.03em;
     }
+
+    h1 .ko {
+      display: block;
+      font-size: clamp(22px, 4.4vw, 34px);
+      color: #77776f;
+      margin-top: 6px;
+    }
+
+    .caret {
+      display: inline-block;
+      width: 2px;
+      height: .85em;
+      margin-left: 4px;
+      background: var(--ink);
+      vertical-align: -.08em;
+      animation: blink 1s steps(1) infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
 
     textarea {
       display: block;
       width: 100%;
-      min-height: 190px;
+      min-height: 170px;
       resize: vertical;
       border: 0;
-      border-bottom: 1px solid var(--line);
       border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
       background: transparent;
       border-radius: 0;
       padding: 24px 0;
@@ -84,106 +87,99 @@
       font-size: 17px;
       line-height: 1.9;
       outline: none;
+      caret-color: var(--ink);
+      caret-shape: block;
     }
 
-    textarea::placeholder {
-      color: #b6b6ae;
-    }
-
-    textarea:focus {
-      border-bottom-color: #66665e;
-    }
+    textarea::placeholder { color: #b6b6ae; }
+    textarea:focus { border-bottom-color: var(--ink); }
 
     .bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
       gap: 16px;
-      margin-top: 22px;
+      margin-top: 24px;
     }
 
     #hint {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.7;
     }
 
     button {
       appearance: none;
-      border: 1px solid #262621;
-      background: transparent;
-      color: #262621;
-      padding: 13px 24px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      padding: 17px 40px;
       font: inherit;
-      font-size: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: .02em;
       cursor: pointer;
-      transition: background .2s, color .2s;
+      transition: background .2s, color .2s, transform .1s;
     }
 
-    button:hover {
-      background: #262621;
-      color: white;
-    }
-
-    button:disabled {
-      opacity: .45;
-      cursor: wait;
-    }
+    button:hover { background: transparent; color: var(--ink); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    button:disabled { opacity: .5; cursor: wait; }
 
     footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      padding: 18px 5vw;
-      background: rgba(253,253,251,.92);
+      padding: 26px 5vw 30px;
       border-top: 1px solid #eeeeea;
-      color: #9b9b93;
-      font-size: 10px;
-      letter-spacing: .04em;
+      color: #8a8a82;
+      font-size: 12px;
+      line-height: 1.8;
+      letter-spacing: .02em;
+      text-align: center;
     }
 
+    footer .show { color: var(--ink); }
+    footer .names { display: block; margin-top: 2px; word-spacing: .5em; }
+
     @media (max-width: 600px) {
-      header { padding: 24px 6vw; }
-      main { margin-top: 9vh; }
-      .intro { margin-bottom: 42px; }
-      .bottom { align-items: flex-end; }
-      button { padding: 12px 17px; }
+      main { padding-top: 8vh; }
+      h1 { margin-bottom: 40px; }
+      .bottom { flex-direction: column-reverse; align-items: stretch; }
+      #hint { text-align: center; }
+      button { width: 100%; padding: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .caret { animation: none; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="eyebrow">A CONTINUOUS RESPONSE</div>
-    <div class="index">AN OPEN QUESTION · 01</div>
-  </header>
-
   <main>
-    <div class="number">01 / BEGIN</div>
-
-    <h1>지금 당신의 마음에<br>남아 있는 것은 무엇인가요?</h1>
-
-    <p class="intro">
-      정리되지 않은 생각이어도 괜찮습니다.<br>
-      다른 사람에게 전하고 싶은 말이나<br>
-      아직 스스로에게도 설명하기 어려운 마음을 적어 주세요.
-    </p>
+    <h1 id="title" aria-label="Please respond. 응답해주세요.">
+      <span class="en" id="titleEn"></span>
+      <span class="ko" id="titleKo"></span>
+    </h1>
 
     <form id="responseForm">
       <textarea
         id="response"
         maxlength="5000"
-        placeholder="여기에 당신의 응답을 남겨 주세요."
+        placeholder="여기에 응답을 남겨 주세요."
         required
       ></textarea>
 
       <div class="bottom">
         <div id="hint">당신의 응답은 다른 응답과 연결됩니다.</div>
-        <button id="submitButton" type="submit">남기기 ↗</button>
+        <button id="submitButton" type="submit">응답하기 ↗</button>
       </div>
     </form>
   </main>
 
-  <footer>응답과 응답 사이 · AN OPEN NETWORK OF THOUGHTS</footer>
+  <footer>
+    <span class="show">전시 &lt;설명하지 않는다&gt;</span>
+    <span class="names">강성은 박미서 승지완 홍이카</span>
+  </footer>
 
   <script src="config.js"></script>
   <script>
@@ -192,9 +188,56 @@
     const button = document.getElementById("submitButton");
     const hint = document.getElementById("hint");
 
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
+    /* ---------- 타자 효과 ---------- */
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
 
+    const caret = document.createElement("span");
+    caret.className = "caret";
+
+    async function typeInto(el, text, speed, onChar) {
+      el.appendChild(caret);
+      for (let i = 1; i <= text.length; i++) {
+        el.textContent = text.slice(0, i);
+        el.appendChild(caret);
+        if (onChar) onChar(text.slice(0, i));
+        await sleep(speed + Math.random() * 40);
+      }
+    }
+
+    async function intro() {
+      const en = document.getElementById("titleEn");
+      const ko = document.getElementById("titleKo");
+      const koText = "응답해주세요.";
+      const enText = "Please Respond.";
+      const placeholderText = input.getAttribute("placeholder");
+
+      if (reduceMotion) {
+        en.textContent = enText;
+        ko.textContent = koText;
+        return;
+      }
+
+      input.setAttribute("placeholder", "");
+      await sleep(300);
+      await typeInto(en, enText, 70);
+      await sleep(250);
+      await typeInto(ko, koText, 90);
+      await sleep(350);
+
+      // 입력창 안내 문구도 한 글자씩
+      for (let i = 1; i <= placeholderText.length; i++) {
+        if (input.value) break;
+        input.setAttribute("placeholder", placeholderText.slice(0, i));
+        await sleep(45);
+      }
+      input.setAttribute("placeholder", placeholderText);
+    }
+
+    intro();
+
+    /* ---------- 제출 ---------- */
+    function submitResponse() {
       const response = input.value.trim();
 
       if (!response) {
@@ -240,6 +283,19 @@
           button.disabled = false;
           hint.textContent = "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
         });
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      submitResponse();
+    });
+
+    // Ctrl/Cmd + Enter 로도 제출
+    input.addEventListener("keydown", function(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        submitResponse();
+      }
     });
   </script>
 </body>
