@@ -4,99 +4,107 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <title>설명하지 않는다.</title>
   <style>
     * { box-sizing: border-box; }
 
     :root {
       --paper: #fdfdfb;
-      --ink: #252520;
+      --ink: #22221f;
       --muted: #92928b;
-      --line: #d4d4ce;
+      --line: #deded8;
     }
 
+    [hidden] { display: none !important; }
+
+    html, body { margin: 0; }
+
     body {
-      margin: 0;
       background: var(--paper);
       color: var(--ink);
       font-family: "Noto Sans KR", Arial, sans-serif;
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
     }
 
+    button {
+      font: inherit;
+      color: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    /* ---------- 상단 ---------- */
     header {
-      padding: 34px 3.5vw 20px;
+      padding: 34px 5vw 0;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
+      align-items: flex-end;
+      gap: 16px;
     }
 
     .eyebrow {
       font-size: 10px;
       letter-spacing: .22em;
       color: #77776f;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     h1 {
-      font-size: clamp(31px, 4.4vw, 52px);
-      font-weight: 400;
-      letter-spacing: -.06em;
       margin: 0;
+      font-weight: 400;
+      font-size: clamp(28px, 4.4vw, 46px);
+      letter-spacing: -.05em;
     }
 
-    .description {
+    #count {
       font-size: 12px;
-      line-height: 2;
-      color: #818179;
-      margin: 20px 0 0;
-    }
-
-    .meta {
       color: var(--muted);
-      font-size: 10px;
-      line-height: 2;
-      text-align: right;
       white-space: nowrap;
     }
 
-    .live-dot {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background: #999990;
-      border-radius: 50%;
-      margin-right: 5px;
-      vertical-align: middle;
+    .toolbar {
+      padding: 24px 5vw 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
+
+    .tabs { display: flex; border: 1px solid var(--ink); }
+    .tabs button { padding: 9px 22px; font-size: 13px; }
+    .tabs button.active { background: var(--ink); color: #fff; }
+
+    #sortBtn { font-size: 12px; color: #68685f; padding: 8px 0; }
 
     #status {
-      margin: 22px 3.5vw 0;
-      font-size: 10px;
+      padding: 12px 5vw 0;
+      font-size: 11px;
       color: #999990;
-      min-height: 15px;
     }
 
-    #viewport {
-      width: 100%;
-      height: min(69vh, 760px);
-      min-height: 430px;
-      overflow: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #deded8 transparent;
-      cursor: grab;
+    main { flex: 1; display: flex; flex-direction: column; }
+
+    #empty {
+      margin: 18vh auto;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
     }
 
-    #viewport:active { cursor: grabbing; }
-
-    #scene {
+    /* ---------- 연결 보기 ---------- */
+    #stage {
       position: relative;
-      width: 100%;
-      min-width: 850px;
-      height: 100%;
-      min-height: 430px;
+      width: min(1100px, 94vw);
+      margin: 14px auto 0;
+      touch-action: pan-y;
     }
 
-    #connections {
+    #lines {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -107,134 +115,246 @@
 
     .edge {
       fill: none;
-      stroke: var(--line);
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
+      stroke: #aeaea5;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-dasharray: .1 7;
+      animation: march 1.4s linear infinite;
     }
 
-    .edge-dot {
-      fill: #bcbcb4;
-    }
+    .edge.soft { opacity: .55; }
+
+    @keyframes march { to { stroke-dashoffset: -7.1; } }
 
     .node {
       position: absolute;
       transform: translate(-50%, -50%);
-      width: clamp(112px, 10.5vw, 150px);
-      aspect-ratio: 1;
-      border: 1px solid #d6d6d0;
+      border: 1px solid #d3d3cc;
       border-radius: 50%;
-      background: rgba(253,253,251,.96);
+      background: var(--paper);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 17px;
+      gap: 6px;
+      padding: 13%;
       text-align: center;
-      gap: 8px;
       cursor: pointer;
-      transition: border-color .3s, box-shadow .3s, background .3s;
       z-index: 1;
+      animation: pop .55s ease both;
+      transition: border-color .25s, box-shadow .25s;
     }
 
-    .node:hover,
-    .node:focus-visible {
+    .node:hover, .node:focus-visible {
       outline: none;
-      border-color: #8c8c80;
-      box-shadow: 0 0 25px rgba(0,0,0,.045);
-      background: white;
+      border-color: #7d7d72;
+      box-shadow: 0 0 26px rgba(0,0,0,.05);
     }
 
-    .node.mine {
-      border-color: #9b9b90;
-      box-shadow: 0 0 28px rgba(0,0,0,.045);
-    }
+    .node.focus { border-color: var(--ink); box-shadow: 0 0 34px rgba(0,0,0,.06); }
+    .node.far { opacity: .55; }
+    .node.far:hover { opacity: 1; }
 
-    .node-index {
+    .node.mine::after {
+      content: "나의 응답";
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
       font-size: 10px;
-      color: #77776f;
-      letter-spacing: .08em;
+      color: var(--muted);
+      white-space: nowrap;
     }
+
+    .node.open {
+      border-style: dashed;
+      border-color: #bdbdb4;
+      color: var(--muted);
+      cursor: default;
+      animation: pop .55s ease both, pulse 2.6s ease-in-out infinite;
+    }
+
+    .node-index { font-size: 10px; color: #77776f; letter-spacing: .08em; }
 
     .node-text {
-      font-size: clamp(10px, 1vw, 13px);
-      line-height: 1.75;
-      overflow-wrap: anywhere;
+      line-height: 1.65;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
       display: -webkit-box;
-      -webkit-line-clamp: 5;
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
-    .node-time {
-      font-size: 9px;
-      color: #999990;
+    .node.focus .node-text { -webkit-line-clamp: 5; }
+    .node-time { font-size: 9px; color: #999990; }
+
+    @keyframes pop {
+      from { opacity: 0; scale: .9; }
+      to { scale: 1; }
     }
 
+    @keyframes pulse { 50% { border-color: #8f8f86; } }
+
+    .chain-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin: 26px 0 0;
+      font-size: 13px;
+    }
+
+    .chain-nav button {
+      padding: 9px 14px;
+      color: var(--ink);
+    }
+
+    .chain-nav button:disabled { opacity: .25; cursor: default; }
+    .chain-nav .arrow { font-size: 20px; line-height: 1; }
+    #pos { min-width: 76px; text-align: center; color: var(--muted); font-size: 12px; }
+
+    /* ---------- 전체 보기 ---------- */
+    #gridView {
+      width: min(1100px, 90vw);
+      margin: 26px auto 0;
+      padding-bottom: 40px;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      text-align: left;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      padding: 18px 18px 20px;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color .2s;
+    }
+
+    .anim .card { animation: pop .45s ease both; }
+    .card:hover, .card:focus-visible { outline: none; border-color: #8c8c80; }
+    .card.mine { border-color: var(--ink); }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #77776f;
+      letter-spacing: .06em;
+    }
+
+    .card-text {
+      font-size: 13px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 6;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-mine { margin-top: auto; font-size: 10px; color: var(--muted); }
+
+    #moreBtn {
+      display: block;
+      margin: 28px auto 0;
+      padding: 12px 26px;
+      border: 1px solid var(--ink);
+      font-size: 13px;
+    }
+
+    #moreBtn:hover { background: var(--ink); color: #fff; }
+
+    /* ---------- 상세 ---------- */
     #detail {
       position: fixed;
       z-index: 5;
       left: 50%;
-      bottom: 56px;
+      bottom: 18px;
       transform: translateX(-50%);
-      width: min(420px, 88vw);
-      padding: 22px 26px;
-      border: 1px solid #deded8;
-      background: rgba(253,253,251,.97);
-      box-shadow: 0 12px 50px rgba(0,0,0,.055);
-      display: none;
+      width: min(440px, 90vw);
+      max-height: 70vh;
+      overflow: auto;
+      padding: 24px 26px 18px;
+      border: 1px solid var(--line);
+      background: rgba(253,253,251,.98);
+      box-shadow: 0 12px 50px rgba(0,0,0,.08);
     }
 
-    #detail.visible { display: block; }
-
-    #detail-label {
-      font-size: 10px;
-      color: #92928b;
-      margin-bottom: 12px;
+    #dClose {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 20px;
+      color: #77776f;
     }
 
-    #detail-text {
-      font-size: 14px;
+    #dLabel { font-size: 10px; color: var(--muted); letter-spacing: .06em; margin-bottom: 12px; }
+
+    #dText {
+      font-size: 15px;
       line-height: 1.9;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
     }
 
-    #detail-close {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      border: 0;
-      background: none;
-      color: #77776f;
-      cursor: pointer;
-      font-size: 17px;
+    #dNav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px solid #eeeeea;
+      font-size: 12px;
     }
 
+    #dNav button { padding: 6px 0; color: #55554d; }
+    #dNav button:disabled { opacity: .25; cursor: default; }
+
+    /* ---------- 하단 ---------- */
     footer {
-      padding: 18px 3.5vw 24px;
+      margin-top: 40px;
+      padding: 22px 5vw 26px;
       border-top: 1px solid #eeeeea;
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      color: #999990;
-      font-size: 10px;
+      align-items: center;
+      gap: 12px 24px;
+      flex-wrap: wrap;
+      font-size: 12px;
       line-height: 1.8;
+      color: #8a8a82;
     }
+
+    footer .show { color: var(--ink); }
+    footer .names { word-spacing: .5em; }
 
     footer a {
-      color: #68685f;
+      color: var(--ink);
       text-decoration: none;
+      border: 1px solid var(--ink);
+      padding: 9px 18px;
     }
 
-    @media (max-width: 600px) {
-      header { padding: 26px 6vw 18px; }
-      .meta { font-size: 9px; }
-      .description { font-size: 11px; }
-      #status { margin-left: 6vw; }
-      #viewport { height: 65vh; }
-      #scene { min-width: 850px; }
-      footer { padding: 16px 6vw 22px; }
+    footer a:hover { background: var(--ink); color: #fff; }
+
+    @media (max-width: 640px) {
+      header { padding-top: 26px; }
+      .tabs button { padding: 9px 18px; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
@@ -244,238 +364,472 @@
     <div>
       <div class="eyebrow">A CONTINUOUS RESPONSE</div>
       <h1>응답과 응답 사이</h1>
-      <p class="description">
-        하나의 응답은 다음 응답과 연결된다.<br>
-        연결은 계속되고, 아직 도착하지 않은 응답은 열려 있다.
-      </p>
     </div>
-
-    <div class="meta">
-      <div id="count">0개의 응답</div>
-      <div><span class="live-dot"></span>실시간 업데이트</div>
-    </div>
+    <div id="count"></div>
   </header>
 
-  <div id="status">연결망을 불러오는 중...</div>
-
-  <main id="viewport">
-    <div id="scene">
-      <svg id="connections" aria-hidden="true"></svg>
+  <div class="toolbar" id="toolbar" hidden>
+    <div class="tabs">
+      <button type="button" class="active" data-view="chain">연결</button>
+      <button type="button" data-view="grid">전체</button>
     </div>
+    <button type="button" id="sortBtn" hidden>최신순 ↓</button>
+  </div>
+
+  <div id="status"></div>
+
+  <main>
+    <div id="empty" hidden>첫 번째 응답을 기다리고 있습니다.</div>
+
+    <section id="chainView" hidden>
+      <div id="stage"><svg id="lines" aria-hidden="true"></svg></div>
+      <div class="chain-nav">
+        <button type="button" id="firstBtn">처음</button>
+        <button type="button" id="prevBtn" class="arrow" aria-label="이전 응답">‹</button>
+        <span id="pos"></span>
+        <button type="button" id="nextBtn" class="arrow" aria-label="다음 응답">›</button>
+        <button type="button" id="lastBtn">최신</button>
+      </div>
+    </section>
+
+    <section id="gridView" hidden>
+      <div id="grid"></div>
+      <button type="button" id="moreBtn" hidden></button>
+    </section>
   </main>
 
-  <div id="detail" role="dialog" aria-live="polite">
-    <button id="detail-close" aria-label="닫기">×</button>
-    <div id="detail-label"></div>
-    <div id="detail-text"></div>
+  <div id="detail" role="dialog" aria-live="polite" hidden>
+    <button type="button" id="dClose" aria-label="닫기">×</button>
+    <div id="dLabel"></div>
+    <div id="dText"></div>
+    <div id="dNav">
+      <button type="button" id="dPrev">← 이전 응답</button>
+      <button type="button" id="dNext">다음 응답 →</button>
+      <button type="button" id="dLink" hidden>연결에서 보기</button>
+    </div>
   </div>
 
   <footer>
-    <span>각 응답은 고유한 목소리로 남습니다.</span>
-    <a id="writeLink" href="?">응답 남기기 ↗</a>
+    <div>
+      <span class="show">전시 &lt;설명하지 않는다&gt;</span>
+      <span class="names">강성은 박미서 승지완 홍이카</span>
+    </div>
+    <a id="writeLink" href="./">응답 남기기 ↗</a>
   </footer>
 
   <script src="config.js"></script>
   <script>
-    const scene = document.getElementById("scene");
-    const svg = document.getElementById("connections");
-    const viewport = document.getElementById("viewport");
-    const statusEl = document.getElementById("status");
-    const count = document.getElementById("count");
-    const detail = document.getElementById("detail");
-
-    const params = new URLSearchParams(window.location.search);
-    const myId = params.get("id") || "";
-
-    let previousSignature = "";
-    let firstRender = true;
-
+    const $ = function(id) { return document.getElementById(id); };
     const NS = "http://www.w3.org/2000/svg";
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const PAGE = 30;
 
-    function el(tag, className, text) {
-      const element = document.createElement(tag);
-      if (className) element.className = className;
-      if (text !== undefined) element.textContent = text;
-      return element;
+    const stage = $("stage");
+    const svg = $("lines");
+    const grid = $("grid");
+    const detail = $("detail");
+    const statusEl = $("status");
+
+    const myId = new URLSearchParams(window.location.search).get("id") || "";
+
+    let nodes = [];
+    let idxById = new Map();
+    let focus = 0;
+    let focusId = "";
+    let followLatest = !myId;
+    let view = "chain";
+    let newestFirst = true;
+    let shown = PAGE;
+    let detailIdx = -1;
+    let dataSig = "";
+    let chainSig = "";
+    let loaded = false;
+    let loading = false;
+    let maskSeq = 0;
+
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
     }
 
     function svgEl(tag, attrs) {
-      const element = document.createElementNS(NS, tag);
-      Object.entries(attrs).forEach(([key, value]) => {
-        element.setAttribute(key, value);
-      });
-      return element;
+      const e = document.createElementNS(NS, tag);
+      Object.keys(attrs || {}).forEach(function(k) { e.setAttribute(k, attrs[k]); });
+      return e;
     }
 
-    function formatTime(value) {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "";
+    function pad(i) { return String(i + 1).padStart(2, "0"); }
 
-      return date.toLocaleTimeString("ko-KR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-      });
+    function fmtTime(value) {
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return "";
+      const hm = d.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+      if (d.toDateString() === new Date().toDateString()) return hm;
+      return (d.getMonth() + 1) + "." + d.getDate() + " " + hm;
     }
 
-    // 연결 순서에 따라 노드를 여러 높이에 배치한다.
-    // 실제 연결 관계는 previousId로 결정한다.
-    function arrangeNodes(nodes, width, height) {
-      const count = nodes.length;
-      const positions = new Map();
+    /* ---------- 연결 보기: 한 응답과 앞뒤 이웃만 ---------- */
+    function updateNav() {
+      const last = nodes.length - 1;
+      $("pos").textContent = (focus + 1) + " / " + nodes.length;
+      $("firstBtn").disabled = focus <= 0;
+      $("prevBtn").disabled = focus <= 0;
+      $("nextBtn").disabled = focus >= last;
+      $("lastBtn").disabled = focus >= last;
+    }
 
-      const columns = Math.max(1, Math.ceil(Math.sqrt(count * 1.5)));
-      const rows = Math.ceil(count / columns);
-      const cellWidth = width / (columns + 1);
-      const cellHeight = Math.max(115, height / (rows + 1));
+    function setFocus(i, manual) {
+      i = Math.max(0, Math.min(i, nodes.length - 1));
+      focus = i;
+      focusId = nodes[i].id;
+      if (manual) followLatest = (i === nodes.length - 1);
+      renderChain();
+    }
 
-      nodes.forEach((node, index) => {
-        const col = index % columns;
-        const row = Math.floor(index / columns);
+    function renderChain() {
+      if (!nodes.length) return;
 
-        // 격자에서 살짝 벗어나 자연스러운 흐름을 만든다.
-        const seed = index * 2.399;
-        const jitterX = Math.sin(seed) * cellWidth * 0.17;
-        const jitterY = Math.cos(seed * 1.7) * cellHeight * 0.18;
+      const last = nodes.length - 1;
+      const narrow = window.innerWidth < 640;
+      const vertical = narrow;
+      const half = narrow ? 1 : 2;
+      const D = 2 * half + 2;
+      const W = stage.clientWidth;
+      if (!W) return;
 
-        positions.set(node.id, {
-          x: cellWidth * (col + 1) + jitterX,
-          y: cellHeight * (row + 0.65) + jitterY
+      const H = vertical ? 540 : Math.max(340, Math.min(460, Math.round(window.innerHeight * 0.55)));
+
+      const slots = [];
+      for (let s = -half; s <= half; s++) {
+        const i = focus + s;
+        slots.push({
+          s: s,
+          i: i,
+          node: i >= 0 && i <= last ? nodes[i] : null,
+          open: i === nodes.length
         });
+      }
+
+      const sig = [W, H, narrow, focus].concat(slots.map(function(o) {
+        return o.node ? o.node.id + o.node.text : (o.open ? "open" : "-");
+      })).join("|");
+
+      updateNav();
+      if (sig === chainSig) return;
+      chainSig = sig;
+
+      stage.style.height = H + "px";
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+      svg.replaceChildren();
+      stage.querySelectorAll(".node").forEach(function(n) { n.remove(); });
+
+      const base = (vertical ? H : W) / D;
+      const d = Math.min(150, base * 0.9, vertical ? W * 0.5 : H * 0.55);
+      const dFocus = Math.min(d * 1.2, vertical ? W * 0.62 : H * 0.7, 180);
+
+      function pos(s) {
+        const t = (s + half + 1) / D;
+        const wave = Math.sin(s * 1.25);
+        return vertical
+          ? { x: W * (0.5 + wave * 0.13), y: H * t }
+          : { x: W * t, y: H * (0.5 + wave * 0.1) };
+      }
+
+      /* 연결선 */
+      const defs = svgEl("defs");
+      svg.appendChild(defs);
+
+      for (let k = 0; k < slots.length - 1; k++) {
+        const a = slots[k];
+        const b = slots[k + 1];
+        if (!a.node || !(b.node || b.open)) continue;
+        if (b.node && b.node.previousId !== a.node.id) continue;
+
+        const pa = pos(a.s);
+        const pb = pos(b.s);
+        const path = vertical
+          ? "M " + pa.x + " " + pa.y + " C " + pa.x + " " + (pa.y + (pb.y - pa.y) * 0.5) + ", " +
+            pb.x + " " + (pb.y - (pb.y - pa.y) * 0.5) + ", " + pb.x + " " + pb.y
+          : "M " + pa.x + " " + pa.y + " C " + (pa.x + (pb.x - pa.x) * 0.5) + " " + pa.y + ", " +
+            (pb.x - (pb.x - pa.x) * 0.5) + " " + pb.y + ", " + pb.x + " " + pb.y;
+
+        const id = "m" + (maskSeq++);
+        const mask = svgEl("mask", {
+          id: id, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: W, height: H
+        });
+        const mp = svgEl("path", {
+          d: path, fill: "none", stroke: "#fff", "stroke-width": 10
+        });
+        mask.appendChild(mp);
+        defs.appendChild(mask);
+
+        const vis = svgEl("path", {
+          d: path,
+          class: "edge" + (b.open ? " soft" : ""),
+          mask: "url(#" + id + ")"
+        });
+        svg.appendChild(vis);
+
+        // 연결선이 앞 응답에서 뒤 응답으로 그려지는 애니메이션
+        if (!reduceMotion) {
+          const len = mp.getTotalLength();
+          mp.style.strokeDasharray = len;
+          mp.animate(
+            [{ strokeDashoffset: len }, { strokeDashoffset: 0 }],
+            {
+              duration: 800,
+              delay: 300 + Math.min(Math.abs(a.s), Math.abs(b.s)) * 220,
+              easing: "ease-out",
+              fill: "both"
+            }
+          );
+        }
+      }
+
+      /* 응답 */
+      slots.forEach(function(o) {
+        if (!o.node && !o.open) return;
+
+        const p = pos(o.s);
+        const isFocus = o.s === 0;
+        const size = isFocus ? dFocus : d;
+        const delay = Math.abs(o.s) * 200;
+
+        let card;
+
+        if (o.open) {
+          card = el("div", "node open");
+          card.appendChild(el("div", "node-index", "NEXT"));
+          card.appendChild(el("div", "node-text", "다음 응답"));
+          card.style.animationDelay = delay + "ms, " + (delay + 600) + "ms";
+        } else {
+          card = el("button", "node");
+          card.type = "button";
+          card.setAttribute("aria-label", "응답 " + (o.i + 1));
+          if (isFocus) card.classList.add("focus");
+          if (Math.abs(o.s) === 2) card.classList.add("far");
+          if (o.node.id === myId) card.classList.add("mine");
+
+          card.appendChild(el("div", "node-index", pad(o.i)));
+          card.appendChild(el("div", "node-text", o.node.text));
+          if (isFocus) card.appendChild(el("div", "node-time", fmtTime(o.node.timestamp)));
+
+          card.style.animationDelay = delay + "ms";
+          card.addEventListener("click", function() {
+            if (isFocus) openDetail(o.i);
+            else setFocus(o.i, true);
+          });
+        }
+
+        card.style.left = p.x + "px";
+        card.style.top = p.y + "px";
+        card.style.width = size + "px";
+        card.style.height = size + "px";
+        card.style.fontSize = (size >= 140 ? 12.5 : size >= 110 ? 11.5 : 10.5) + "px";
+
+        stage.appendChild(card);
+      });
+    }
+
+    /* ---------- 전체 보기: 격자 ---------- */
+    function renderGrid(animate) {
+      grid.replaceChildren();
+      grid.classList.toggle("anim", !!animate && !reduceMotion);
+
+      const order = nodes.map(function(_, i) { return i; });
+      if (newestFirst) order.reverse();
+
+      order.slice(0, shown).forEach(function(i, k) {
+        const n = nodes[i];
+        const card = el("button", "card");
+        card.type = "button";
+        card.setAttribute("aria-label", "응답 " + (i + 1));
+        if (n.id === myId) card.classList.add("mine");
+        if (animate) card.style.animationDelay = Math.min(k, 12) * 35 + "ms";
+
+        const head = el("div", "card-head");
+        head.appendChild(el("span", "", pad(i)));
+        head.appendChild(el("span", "", fmtTime(n.timestamp)));
+
+        card.appendChild(head);
+        card.appendChild(el("div", "card-text", n.text));
+        if (n.id === myId) card.appendChild(el("div", "card-mine", "나의 응답"));
+
+        card.addEventListener("click", function() { openDetail(i); });
+        grid.appendChild(card);
       });
 
-      return positions;
+      const rest = order.length - Math.min(order.length, shown);
+      $("moreBtn").hidden = rest <= 0;
+      $("moreBtn").textContent = "더 보기 · 남은 " + rest + "개";
+      $("sortBtn").textContent = newestFirst ? "최신순 ↓" : "처음부터 ↑";
     }
 
-    function showDetail(node, index) {
-      document.getElementById("detail-label").textContent =
-        "RESPONSE " + String(index + 1).padStart(3, "0") +
-        " · " + formatTime(node.timestamp);
+    /* ---------- 상세 ---------- */
+    function openDetail(i) {
+      const n = nodes[i];
+      if (!n) return;
+      detailIdx = i;
 
-      document.getElementById("detail-text").textContent = node.text;
-      detail.classList.add("visible");
+      const t = fmtTime(n.timestamp);
+      $("dLabel").textContent =
+        "RESPONSE " + String(i + 1).padStart(3, "0") +
+        (t ? " · " + t : "") +
+        (n.id === myId ? " · 나의 응답" : "");
+      $("dText").textContent = n.text;
+      $("dPrev").disabled = i <= 0;
+      $("dNext").disabled = i >= nodes.length - 1;
+      $("dLink").hidden = view !== "grid";
+      detail.hidden = false;
     }
 
-    document.getElementById("detail-close").addEventListener("click", () => {
-      detail.classList.remove("visible");
+    function closeDetail() {
+      detail.hidden = true;
+      detailIdx = -1;
+    }
+
+    $("dClose").addEventListener("click", closeDetail);
+
+    $("dPrev").addEventListener("click", function() {
+      if (detailIdx <= 0) return;
+      openDetail(detailIdx - 1);
+      if (view === "chain") setFocus(detailIdx, true);
     });
 
-    function renderGraph(data) {
+    $("dNext").addEventListener("click", function() {
+      if (detailIdx >= nodes.length - 1) return;
+      openDetail(detailIdx + 1);
+      if (view === "chain") setFocus(detailIdx, true);
+    });
+
+    $("dLink").addEventListener("click", function() {
+      const i = detailIdx;
+      closeDetail();
+      setView("chain");
+      setFocus(i, true);
+    });
+
+    /* ---------- 화면 전환 ---------- */
+    function setView(v) {
+      view = v;
+
+      document.querySelectorAll(".tabs button").forEach(function(b) {
+        b.classList.toggle("active", b.dataset.view === v);
+      });
+
+      $("chainView").hidden = v !== "chain" || !nodes.length;
+      $("gridView").hidden = v !== "grid" || !nodes.length;
+      $("sortBtn").hidden = v !== "grid";
+      $("dLink").hidden = v !== "grid";
+
+      if (!nodes.length) return;
+
+      if (v === "chain") {
+        chainSig = "";
+        renderChain();
+      } else {
+        renderGrid(true);
+      }
+    }
+
+    document.querySelectorAll(".tabs button").forEach(function(b) {
+      b.addEventListener("click", function() { setView(b.dataset.view); });
+    });
+
+    $("sortBtn").addEventListener("click", function() {
+      newestFirst = !newestFirst;
+      renderGrid(true);
+    });
+
+    $("moreBtn").addEventListener("click", function() {
+      shown += PAGE;
+      renderGrid(false);
+    });
+
+    $("firstBtn").addEventListener("click", function() { setFocus(0, true); });
+    $("prevBtn").addEventListener("click", function() { setFocus(focus - 1, true); });
+    $("nextBtn").addEventListener("click", function() { setFocus(focus + 1, true); });
+    $("lastBtn").addEventListener("click", function() { setFocus(nodes.length - 1, true); });
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") closeDetail();
+      if (view !== "chain" || !nodes.length) return;
+      if (e.key === "ArrowLeft") setFocus(focus - 1, true);
+      if (e.key === "ArrowRight") setFocus(focus + 1, true);
+    });
+
+    // 밀어서 이동
+    let touchX = null;
+    stage.addEventListener("touchstart", function(e) {
+      touchX = e.touches[0].clientX;
+    }, { passive: true });
+    stage.addEventListener("touchend", function(e) {
+      if (touchX === null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 50) return;
+      setFocus(focus + (dx < 0 ? 1 : -1), true);
+    });
+
+    /* ---------- 데이터 ---------- */
+    function render(animate) {
+      const has = nodes.length > 0;
+
+      $("empty").hidden = has;
+      $("toolbar").hidden = !has;
+      $("count").textContent = has ? nodes.length + "개의 응답" : "";
+      $("chainView").hidden = !has || view !== "chain";
+      $("gridView").hidden = !has || view !== "grid";
+
+      if (!has) return;
+
+      if (view === "chain") renderChain();
+      else renderGrid(animate);
+    }
+
+    function onData(data) {
       if (!data || !data.ok || !Array.isArray(data.nodes)) {
         throw new Error("연결망 데이터를 읽을 수 없습니다.");
       }
 
-      const nodes = data.nodes;
-      count.textContent = nodes.length + "개의 응답";
+      statusEl.textContent = "";
 
-      const signature = nodes
-        .map(n => n.id + ":" + n.previousId + ":" + n.text)
-        .join("|");
+      const sig = data.nodes.map(function(n) {
+        return n.id + ":" + n.previousId + ":" + n.text;
+      }).join("|");
 
-      if (signature === previousSignature) {
-        statusEl.textContent = "연결망 업데이트 · " +
-          new Date().toLocaleTimeString("ko-KR");
-        return;
-      }
+      if (loaded && sig === dataSig) return;
+      dataSig = sig;
 
-      previousSignature = signature;
+      const prevLen = nodes.length;
+      const wasAtLast = prevLen > 0 && focus === prevLen - 1;
 
-      // 화면 요소만 제거하고 SVG 연결선을 다시 만든다.
-      scene.querySelectorAll(".node").forEach(n => n.remove());
-      svg.replaceChildren();
+      nodes = data.nodes;
+      idxById = new Map(nodes.map(function(n, i) { return [n.id, i]; }));
 
-      if (!nodes.length) {
-        statusEl.textContent = "첫 번째 응답을 기다리고 있습니다.";
-        return;
-      }
-
-      const width = Math.max(viewport.clientWidth, 850);
-      const height = Math.max(viewport.clientHeight, 430);
-
-      scene.style.width = width + "px";
-      scene.style.height = height + "px";
-      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-
-      const positions = arrangeNodes(nodes, width, height);
-      const byId = new Map(nodes.map(n => [n.id, n]));
-
-      // 연결선은 실제 저장된 이전 응답 ID를 따른다.
-      nodes.forEach(node => {
-        if (!node.previousId || !byId.has(node.previousId)) return;
-
-        const a = positions.get(node.previousId);
-        const b = positions.get(node.id);
-        if (!a || !b) return;
-
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const bend = Math.min(65, Math.abs(dx) * 0.2);
-
-        const direction = dx >= 0 ? 1 : -1;
-        const path = [
-          `M ${a.x} ${a.y}`,
-          `C ${a.x + bend * direction} ${a.y + dy * 0.15},`,
-          `${b.x - bend * direction} ${b.y - dy * 0.15},`,
-          `${b.x} ${b.y}`
-        ].join(" ");
-
-        svg.appendChild(svgEl("path", {
-          d: path,
-          class: "edge"
-        }));
-
-        svg.appendChild(svgEl("circle", {
-          cx: b.x,
-          cy: b.y,
-          r: 1.8,
-          class: "edge-dot"
-        }));
-      });
-
-      nodes.forEach((node, index) => {
-        const p = positions.get(node.id);
-        const card = el("button", "node");
-        card.type = "button";
-        card.style.left = p.x + "px";
-        card.style.top = p.y + "px";
-        card.setAttribute("aria-label", "응답 " + (index + 1));
-
-        if (node.id === myId) card.classList.add("mine");
-
-        card.appendChild(el(
-          "div",
-          "node-index",
-          String(index + 1).padStart(2, "0")
-        ));
-
-        card.appendChild(el("div", "node-text", node.text));
-        card.appendChild(el("div", "node-time", formatTime(node.timestamp)));
-
-        card.addEventListener("click", () => showDetail(node, index));
-        scene.appendChild(card);
-      });
-
-      statusEl.textContent =
-        "응답들이 연결되고 있습니다 · " +
-        new Date().toLocaleTimeString("ko-KR");
-
-      // 첫 화면에서는 관객이 전체 구도를 볼 수 있도록 유지한다.
-      // 새 응답이 추가되면 끝부분으로 이동한다.
-      if (!firstRender) {
-        const mine = nodes.find(n => n.id === myId);
-        if (mine) {
-          const p = positions.get(mine.id);
-          viewport.scrollTo({
-            left: Math.max(0, p.x - viewport.clientWidth / 2),
-            behavior: "smooth"
-          });
+      if (!loaded) {
+        loaded = true;
+        if (idxById.has(myId)) {
+          focus = idxById.get(myId);
+          followLatest = false;
+        } else {
+          focus = nodes.length - 1;
+          followLatest = true;
         }
+      } else {
+        if (focusId && idxById.has(focusId)) focus = idxById.get(focusId);
+        if (followLatest && wasAtLast && nodes.length > prevLen) focus = nodes.length - 1;
       }
 
-      firstRender = false;
-    }
+      if (nodes.length) {
+        focus = Math.max(0, Math.min(focus, nodes.length - 1));
+        focusId = nodes[focus].id;
+      }
 
-    let loading = false;
+      render(false);
+    }
 
     function loadGraph() {
       if (typeof EXEC_URL === "undefined" || EXEC_URL.indexOf("script.google.com") === -1) {
@@ -483,13 +837,12 @@
         return;
       }
 
-      // 이전 요청이 끝나기 전에는 새 요청을 보내지 않는다.
-      if (loading) return;
+      if (loading || document.hidden) return;
       loading = true;
 
       fetch(EXEC_URL + "?action=graph&t=" + Date.now())
         .then(function(res) { return res.json(); })
-        .then(renderGraph)
+        .then(onData)
         .catch(function(error) {
           console.error(error);
           statusEl.textContent = "연결망을 불러오지 못했습니다. " +
@@ -498,16 +851,13 @@
         .finally(function() { loading = false; });
     }
 
-    // 작성 화면(index.html)으로 돌아가는 링크
-    document.getElementById("writeLink").href = "./";
-
     loadGraph();
     setInterval(loadGraph, 5000);
 
-    window.addEventListener("resize", () => {
-      // 화면 크기가 바뀌면 현재 연결망을 다시 그린다.
-      previousSignature = "";
-      loadGraph();
+    let resizeTimer;
+    window.addEventListener("resize", function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function() { render(false); }, 150);
     });
   </script>
 </body>
