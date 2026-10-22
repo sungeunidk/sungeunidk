@@ -5,373 +5,233 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #101010;
-      --panel: #1b1b1b;
-      --text: #f1eee7;
-      --muted: #858585;
-      --line: #68645d;
-      --accent: #d8ff65;
-    }
+    * { box-sizing: border-box; }
 
-    * {
-      box-sizing: border-box;
+    :root {
+      --paper: #fdfdfb;
+      --ink: #22221f;
+      --muted: #92928b;
+      --line: #deded8;
     }
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, "Noto Sans KR", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Noto Sans KR", Arial, sans-serif;
+      min-height: 100vh;
     }
 
     header {
-      padding: 30px 36px 20px;
+      padding: 32px 5vw;
       display: flex;
       justify-content: space-between;
-      align-items: end;
-      gap: 20px;
+      align-items: center;
     }
 
     .eyebrow {
+      font-size: 10px;
+      letter-spacing: .2em;
       color: var(--muted);
+    }
+
+    .index {
       font-size: 11px;
-      letter-spacing: 0.18em;
-      margin-bottom: 12px;
+      color: var(--muted);
+    }
+
+    main {
+      width: min(680px, 88vw);
+      margin: 12vh auto 0;
+      padding-bottom: 100px;
+    }
+
+    .number {
+      font-family: Georgia, serif;
+      font-size: 13px;
+      color: #a1a198;
+      margin-bottom: 28px;
     }
 
     h1 {
-      font-size: clamp(25px, 4vw, 48px);
       font-weight: 400;
-      margin: 0;
-      letter-spacing: -0.05em;
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1.45;
+      letter-spacing: -.055em;
+      margin: 0 0 24px;
     }
 
-    #count {
-      color: var(--accent);
-      font-size: 15px;
-      white-space: nowrap;
-    }
-
-    .description {
-      margin: 0;
-      padding: 0 36px 26px;
-      color: #aaa69f;
-      font-size: 13px;
-      line-height: 1.8;
-    }
-
-    #status {
-      padding: 0 36px 18px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    #viewport {
-      overflow-x: auto;
-      overflow-y: hidden;
-      padding: 25px 36px 60px;
-      min-height: 300px;
-      scrollbar-color: #565656 var(--bg);
-    }
-
-    #network {
-      display: flex;
-      align-items: center;
-      width: max-content;
-      min-height: 220px;
-    }
-
-    .node {
-      width: 220px;
-      min-height: 190px;
-      flex: 0 0 220px;
-      border: 1px solid #45433e;
-      background: var(--panel);
-      padding: 19px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .node:first-child {
-      border-color: var(--accent);
-    }
-
-    .node-index {
-      color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-    }
-
-    .node-text {
-      font-size: 16px;
-      line-height: 1.8;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .node-time {
-      color: var(--muted);
-      font-size: 10px;
-      margin-top: auto;
-    }
-
-    .connector {
-      width: 55px;
-      height: 1px;
-      background: var(--line);
-      flex: 0 0 55px;
-      position: relative;
-    }
-
-    .connector::after {
-      content: "";
-      position: absolute;
-      right: 0;
-      top: -4px;
-      width: 8px;
-      height: 8px;
-      border-top: 1px solid var(--line);
-      border-right: 1px solid var(--line);
-      transform: rotate(45deg);
-    }
-
-    #empty {
-      color: var(--muted);
+    .intro {
+      color: #77776f;
       font-size: 14px;
-      padding: 40px 0;
+      line-height: 2;
+      margin-bottom: 60px;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      min-height: 190px;
+      resize: vertical;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      background: transparent;
+      border-radius: 0;
+      padding: 24px 0;
+      color: var(--ink);
+      font: inherit;
+      font-size: 17px;
+      line-height: 1.9;
+      outline: none;
+    }
+
+    textarea::placeholder {
+      color: #b6b6ae;
+    }
+
+    textarea:focus {
+      border-bottom-color: #66665e;
+    }
+
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    #hint {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid #262621;
+      background: transparent;
+      color: #262621;
+      padding: 13px 24px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+    }
+
+    button:hover {
+      background: #262621;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: wait;
     }
 
     footer {
-      padding: 18px 36px;
-      color: #777;
-      border-top: 1px solid #292929;
-      font-size: 11px;
-      line-height: 1.8;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      padding: 18px 5vw;
+      background: rgba(253,253,251,.92);
+      border-top: 1px solid #eeeeea;
+      color: #9b9b93;
+      font-size: 10px;
+      letter-spacing: .04em;
     }
 
     @media (max-width: 600px) {
-      header {
-        padding: 24px 20px 16px;
-      }
-
-      .description,
-      #status {
-        padding-left: 20px;
-        padding-right: 20px;
-      }
-
-      #viewport {
-        padding-left: 20px;
-        padding-right: 20px;
-      }
-
-      footer {
-        padding-left: 20px;
-        padding-right: 20px;
-      }
+      header { padding: 24px 6vw; }
+      main { margin-top: 9vh; }
+      .intro { margin-bottom: 42px; }
+      .bottom { align-items: flex-end; }
+      button { padding: 12px 17px; }
     }
   </style>
 </head>
-
 <body>
   <header>
-    <div>
-      <div class="eyebrow">A CONTINUOUS RESPONSE</div>
-      <h1>응답과 응답 사이</h1>
-    </div>
-    <div id="count">0 RESPONSES</div>
+    <div class="eyebrow">A CONTINUOUS RESPONSE</div>
+    <div class="index">AN OPEN QUESTION · 01</div>
   </header>
 
-  <p class="description">
-    하나의 응답은 다음 응답과 연결된다.<br>
-    연결은 계속되고, 아직 도착하지 않은 응답은 열려 있다.
-  </p>
+  <main>
+    <div class="number">01 / BEGIN</div>
 
-  <div id="status">연결망을 불러오는 중...</div>
+    <h1>지금 당신의 마음에<br>남아 있는 것은 무엇인가요?</h1>
 
-  <main id="viewport">
-    <div id="network">
-      <div id="empty">아직 도착한 응답이 없습니다.</div>
-    </div>
+    <p class="intro">
+      정리되지 않은 생각이어도 괜찮습니다.<br>
+      다른 사람에게 전하고 싶은 말이나<br>
+      아직 스스로에게도 설명하기 어려운 마음을 적어 주세요.
+    </p>
+
+    <form id="responseForm">
+      <textarea
+        id="response"
+        maxlength="5000"
+        placeholder="여기에 당신의 응답을 남겨 주세요."
+        required
+      ></textarea>
+
+      <div class="bottom">
+        <div id="hint">당신의 응답은 다른 응답과 연결됩니다.</div>
+        <button id="submitButton" type="submit">남기기 ↗</button>
+      </div>
+    </form>
   </main>
 
-  <footer>
-    각 카드는 하나의 응답을 나타냅니다.
-    선은 제출 순서에 따른 연결을 나타냅니다.
-  </footer>
+  <footer>응답과 응답 사이 · AN OPEN NETWORK OF THOUGHTS</footer>
 
   <script>
-    const network = document.getElementById("network");
-    const count = document.getElementById("count");
-    const status = document.getElementById("status");
+    const form = document.getElementById("responseForm");
+    const input = document.getElementById("response");
+    const button = document.getElementById("submitButton");
+    const hint = document.getElementById("hint");
 
-    let lastSignature = "";
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
 
-    function makeElement(tag, className, text) {
-      const el = document.createElement(tag);
+      const response = input.value.trim();
 
-      if (className) el.className = className;
-      if (text !== undefined) el.textContent = text;
-
-      return el;
-    }
-
-    function formatTime(value) {
-      if (!value) return "";
-
-      const date = new Date(value);
-
-      if (Number.isNaN(date.getTime())) return "";
-
-      return date.toLocaleString("ko-KR", {
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    function renderGraph(data) {
-      if (!data || !data.ok || !Array.isArray(data.nodes)) {
-        throw new Error("연결망 데이터 형식이 올바르지 않습니다.");
-      }
-
-      const nodes = data.nodes;
-
-      // 데이터가 달라졌을 때만 화면을 다시 그린다.
-      const signature = nodes
-        .map(node => node.id + ":" + node.previousId)
-        .join("|");
-
-      count.textContent = nodes.length + " RESPONSES";
-
-      if (signature === lastSignature) {
-        status.textContent = "연결망 실시간 업데이트 · " +
-          new Date().toLocaleTimeString("ko-KR");
+      if (!response) {
+        hint.textContent = "응답을 먼저 작성해 주세요.";
+        input.focus();
         return;
       }
 
-      lastSignature = signature;
-      network.replaceChildren();
+      button.disabled = true;
+      hint.textContent = "응답을 연결하고 있습니다…";
 
-      if (nodes.length === 0) {
-        network.appendChild(
-          makeElement("div", "node-text", "아직 도착한 응답이 없습니다.")
-        );
-
-        status.textContent = "새 응답을 기다리는 중";
-        return;
-      }
-
-      // 이전 응답 ID를 기준으로 연결 순서를 구성한다.
-      const byId = new Map(nodes.map(node => [node.id, node]));
-      const children = new Map();
-
-      nodes.forEach(node => {
-        if (!children.has(node.previousId)) {
-          children.set(node.previousId, []);
-        }
-
-        if (node.previousId && byId.has(node.previousId)) {
-          children.get(node.previousId).push(node);
-        }
-      });
-
-      // 가장 앞선 응답부터 연결을 따라간다.
-      const ordered = [];
-      const visited = new Set();
-
-      function walk(node) {
-        if (!node || visited.has(node.id)) return;
-
-        visited.add(node.id);
-        ordered.push(node);
-
-        const nextNodes = children.get(node.id) || [];
-
-        nextNodes.forEach(walk);
-      }
-
-      const roots = nodes.filter(
-        node => !node.previousId || !byId.has(node.previousId)
-      );
-
-      roots.forEach(walk);
-
-      // 연결이 끊긴 데이터도 화면에서 누락하지 않는다.
-      nodes.forEach(node => {
-        if (!visited.has(node.id)) walk(node);
-      });
-
-      ordered.forEach((node, index) => {
-        if (index > 0) {
-          const previous = ordered[index - 1];
-
-          const isConnected =
-            node.previousId === previous.id;
-
-          const connector = makeElement(
-            "div",
-            "connector"
-          );
-
-          if (!isConnected) {
-            connector.style.background = "transparent";
-            connector.style.borderTop = "1px dashed #68645d";
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!result || !result.ok) {
+            button.disabled = false;
+            hint.textContent =
+              result && result.error
+                ? result.error
+                : "저장하지 못했습니다. 다시 시도해 주세요.";
+            return;
           }
 
-          network.appendChild(connector);
-        }
+          // 작성한 응답 ID를 완료 화면으로 전달
+          const url = new URL(window.location.href);
+          url.searchParams.set("page", "done");
+          url.searchParams.set("id", result.id || "");
 
-        const card = makeElement("article", "node");
-
-        card.appendChild(
-          makeElement(
-            "div",
-            "node-index",
-            "RESPONSE " + String(index + 1).padStart(3, "0")
-          )
-        );
-
-        card.appendChild(
-          makeElement("div", "node-text", node.text)
-        );
-
-        card.appendChild(
-          makeElement("div", "node-time", formatTime(node.timestamp))
-        );
-
-        network.appendChild(card);
-      });
-
-      status.textContent =
-        "연결망 실시간 업데이트 · " +
-        new Date().toLocaleTimeString("ko-KR");
-
-      // 최신 응답을 바로 확인할 수 있도록 끝으로 이동한다.
-      document.getElementById("viewport").scrollLeft =
-        document.getElementById("viewport").scrollWidth;
-    }
-
-    function loadGraph() {
-      google.script.run
-        .withSuccessHandler(renderGraph)
-        .withFailureHandler(error => {
-          status.textContent =
-            "연결망을 불러오지 못했습니다. " +
-            (error && error.message ? error.message : "");
+          window.top.location.href = url.toString();
         })
-        .getGraphData();
-    }
-
-    loadGraph();
-    setInterval(loadGraph, 5000);
+        .withFailureHandler(function(error) {
+          button.disabled = false;
+          hint.textContent =
+            "오류가 발생했습니다. " +
+            (error && error.message ? error.message : "다시 시도해 주세요.");
+        })
+        .submitResponse(response);
+    });
   </script>
 </body>
 </html>
