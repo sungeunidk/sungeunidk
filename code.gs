@@ -10,14 +10,21 @@ const HEADERS = [
 ];
 
 /**
- * 웹 앱 진입점
- * 기본 주소: 전시용 연결망 화면
- * ?action=graph : 연결망 JSON 데이터
+ * 웹 앱 화면
+ * 기본 접속: 응답 작성 화면
+ * ?page=done&id=응답ID : 제출 완료 및 연결망 화면
  */
 function doGet(e) {
-  const action = e && e.parameter ? e.parameter.action : "";
+  const page = e && e.parameter ? e.parameter.page : "";
 
-  if (action === "graph") {
+  if (page === "done") {
+    return HtmlService
+      .createHtmlOutputFromFile("done")
+      .setTitle("응답과 응답 사이")
+      .addMetaTag("viewport", "width=device-width, initial-scale=1");
+  }
+
+  if (e && e.parameter && e.parameter.action === "graph") {
     return ContentService
       .createTextOutput(JSON.stringify(getGraphData()))
       .setMimeType(ContentService.MimeType.JSON);
@@ -25,39 +32,74 @@ function doGet(e) {
 
   return HtmlService
     .createHtmlOutputFromFile("index")
-    .setTitle("응답 연결망")
+    .setTitle("응답 남기기")
     .addMetaTag("viewport", "width=device-width, initial-scale=1");
 }
 
 /**
- * 사용자 응답 저장
- * 기존 POST 요청 형식: { "response": "응답 내용" }
+ * HTML 응답 작성 화면에서 호출
+ */
+function submitResponse(response) {
+  return saveResponse_(response);
+}
+
+/**
+ * 기존 외부 POST 요청도 지원
+ * 요청 형식: {"response":"응답 내용"}
  */
 function doPost(e) {
-  const lock = LockService.getScriptLock();
-
   try {
-    lock.waitLock(30000);
-
     if (!e || !e.postData || !e.postData.contents) {
       throw new Error("요청 데이터가 비어 있습니다.");
     }
 
     const body = JSON.parse(e.postData.contents);
-    const response = String(body.response || "").trim();
+    const result = saveResponse_(body.response);
+
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    console.error("응답 저장 실패: " + (error.stack || error.message || error));
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        ok: false,
+        error: String(error.message || error)
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * 응답 저장 및 이전 응답과 연결
+ */
+function saveResponse_(input) {
+  const lock = LockService.getScriptLock();
+
+  try {
+    lock.waitLock(30000);
+
+    if (input === null || input === undefined) {
+      throw new Error("응답을 입력해 주세요.");
+    }
+
+    const response = String(input).trim();
 
     if (!response || response.length > 5000) {
       throw new Error("응답이 비어 있거나 5000자를 초과했습니다.");
     }
 
     const sheet = getResponseSheet_();
+
+    // 기존 응답도 연결 ID가 있도록 보완
     migrateRows_(sheet);
 
     const lastRow = sheet.getLastRow();
 
-    // 가장 최근 응답의 ID를 가져온다.
     const previousId = lastRow >= 2
-      ? String(sheet.getRange(lastRow, 3).getDisplayValue())
+      ? String(sheet.getRange(lastRow, 3).getDisplayValue()).trim()
       : "";
 
     const responseId = Utilities.getUuid();
@@ -76,26 +118,15 @@ function doPost(e) {
 
     SpreadsheetApp.flush();
 
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        ok: true,
-        id: responseId,
-        previousId: previousId
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return {
+      ok: true,
+      id: responseId,
+      previousId: previousId
+    };
 
   } catch (error) {
-    console.error(
-      "응답 저장 실패: " +
-      (error.stack || error.message || error)
-    );
-
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        ok: false,
-        error: String(error.message || error)
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    console.error("응답 저장 실패: " + (error.stack || error.message || error));
+    throw error;
 
   } finally {
     if (lock.hasLock()) {
@@ -105,11 +136,11 @@ function doPost(e) {
 }
 
 /**
- * 스프레드시트 가져오기 및 헤더 확인
+ * 스프레드시트 및 헤더 확인
  */
 function getResponseSheet_() {
   const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  const sheet = spreadsheet.getSheetByName(SHEET_NAME);
 
   if (!sheet) {
     throw new Error("시트를 찾을 수 없습니다: " + SHEET_NAME);
@@ -119,7 +150,7 @@ function getResponseSheet_() {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sheet.setFrozenRows(1);
   } else {
-    // 기존 A, B열은 유지하고 C, D열 헤더만 보완한다.
+    // 기존 A, B열 데이터는 유지하고 C, D열을 추가
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sheet.setFrozenRows(1);
   }
@@ -128,8 +159,7 @@ function getResponseSheet_() {
 }
 
 /**
- * 기존 응답에 ID와 이전 응답 ID를 부여한다.
- * 이미 ID가 있는 행은 기존 값을 유지한다.
+ * 기존 응답에 ID와 이전 응답 ID를 부여
  */
 function migrateRows_(sheet) {
   const lastRow = sheet.getLastRow();
@@ -144,7 +174,6 @@ function migrateRows_(sheet) {
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
 
-    // 내용이 없는 행은 연결하지 않는다.
     if (!String(row[1] || "").trim()) continue;
 
     let id = String(row[2] || "").trim();
@@ -154,6 +183,7 @@ function migrateRows_(sheet) {
       row[2] = id;
     }
 
+    // 기존 연결 정보가 없는 경우에만 직전 응답과 연결
     if (!String(row[3] || "").trim() && previousId) {
       row[3] = previousId;
     }
@@ -165,7 +195,7 @@ function migrateRows_(sheet) {
 }
 
 /**
- * 전시 화면에 전달할 연결망 데이터
+ * 전시 화면용 연결망 데이터 반환
  */
 function getGraphData() {
   const lock = LockService.getScriptLock();
@@ -202,8 +232,7 @@ function getGraphData() {
 
       if (!rawResponse.trim() || !id) continue;
 
-      // 시트 수식 방지를 위한 앞쪽 작은따옴표는
-      // 화면에서 표시하지 않는다.
+      // 수식 방지용 접두 작은따옴표 제거
       const response = rawResponse.replace(/^'/, "");
 
       nodes.push({
