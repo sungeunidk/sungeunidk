@@ -126,19 +126,19 @@
 
     @keyframes march { to { stroke-dashoffset: -7.1; } }
 
+    /* 응답 카드: 크기가 고정되어 서로 겹치지 않는다 */
     .node {
       position: absolute;
       transform: translate(-50%, -50%);
       border: 1px solid #d3d3cc;
-      border-radius: 50%;
       background: var(--paper);
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 13%;
-      text-align: center;
+      align-items: stretch;
+      gap: 8px;
+      padding: 16px 16px 14px;
+      text-align: left;
+      overflow: hidden;
       cursor: pointer;
       z-index: 1;
       animation: pop .55s ease both;
@@ -155,17 +155,6 @@
     .node.far { opacity: .55; }
     .node.far:hover { opacity: 1; }
 
-    .node.mine::after {
-      content: "나의 응답";
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 10px;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
     .node.open {
       border-style: dashed;
       border-color: #bdbdb4;
@@ -174,23 +163,29 @@
       animation: pop .55s ease both, pulse 2.6s ease-in-out infinite;
     }
 
-    .node-index { font-size: 10px; color: #77776f; letter-spacing: .08em; }
+    .node-index {
+      font-size: 10px;
+      color: #77776f;
+      letter-spacing: .08em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .node-text {
+      flex: 1;
+      min-height: 0;
       line-height: 1.65;
       white-space: pre-wrap;
       overflow-wrap: anywhere;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: var(--lines, 4);
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
-    .node.focus .node-text { -webkit-line-clamp: 5; }
-    .node-time { font-size: 9px; color: #999990; }
-
     @keyframes pop {
-      from { opacity: 0; scale: .9; }
+      from { opacity: 0; scale: .94; }
       to { scale: 1; }
     }
 
@@ -470,7 +465,7 @@
       return (d.getMonth() + 1) + "." + d.getDate() + " " + hm;
     }
 
-    /* ---------- 연결 보기: 한 응답과 앞뒤 이웃만 ---------- */
+    /* ---------- 연결 보기: 한 응답과 앞뒤 이웃만, 선으로 연결 ---------- */
     function updateNav() {
       const last = nodes.length - 1;
       $("pos").textContent = (focus + 1) + " / " + nodes.length;
@@ -493,13 +488,31 @@
 
       const last = nodes.length - 1;
       const narrow = window.innerWidth < 640;
-      const vertical = narrow;
-      const half = narrow ? 1 : 2;
-      const D = 2 * half + 2;
       const W = stage.clientWidth;
       if (!W) return;
 
-      const H = vertical ? 540 : Math.max(340, Math.min(460, Math.round(window.innerHeight * 0.55)));
+      const vertical = narrow;                          // 모바일: 세로로 이어짐
+      const half = (!narrow && W >= 880) ? 2 : 1;       // 보이는 이웃 수
+      const n = 2 * half + 1;
+      const FS = 12;
+
+      let cw, ch, gap, H, stagger = 0;
+
+      if (vertical) {
+        cw = Math.min(340, Math.round(W * 0.86));
+        ch = 140;
+        gap = 58;
+        H = n * ch + (n - 1) * gap + 40;
+      } else {
+        gap = 64;
+        cw = Math.min(200, Math.floor((W - gap * (n - 1)) / n));
+        ch = Math.max(150, Math.min(190, cw));
+        stagger = 26;
+        H = ch + stagger * 2 + 56;
+      }
+
+      // 카드 높이에 맞춰 보여 줄 줄 수를 정한다 (카드가 넘치지 않도록)
+      const lines = Math.max(3, Math.floor((ch - 30 - 16 - 8) / (FS * 1.65)));
 
       const slots = [];
       for (let s = -half; s <= half; s++) {
@@ -523,21 +536,21 @@
       stage.style.height = H + "px";
       svg.setAttribute("viewBox", "0 0 " + W + " " + H);
       svg.replaceChildren();
-      stage.querySelectorAll(".node").forEach(function(n) { n.remove(); });
+      stage.querySelectorAll(".node").forEach(function(el) { el.remove(); });
 
-      const base = (vertical ? H : W) / D;
-      const d = Math.min(150, base * 0.9, vertical ? W * 0.5 : H * 0.55);
-      const dFocus = Math.min(d * 1.2, vertical ? W * 0.62 : H * 0.7, 180);
-
-      function pos(s) {
-        const t = (s + half + 1) / D;
+      // 카드 중심 좌표
+      function center(s) {
+        const k = s + half;
         const wave = Math.sin(s * 1.25);
-        return vertical
-          ? { x: W * (0.5 + wave * 0.13), y: H * t }
-          : { x: W * t, y: H * (0.5 + wave * 0.1) };
+        if (vertical) {
+          return { x: W / 2 + wave * W * 0.05, y: 20 + k * (ch + gap) + ch / 2 };
+        }
+        const total = n * cw + (n - 1) * gap;
+        const startX = (W - total) / 2;
+        return { x: startX + k * (cw + gap) + cw / 2, y: H / 2 + wave * stagger };
       }
 
-      /* 연결선 */
+      /* 연결선: 카드 가장자리에서 다음 카드 가장자리로 */
       const defs = svgEl("defs");
       svg.appendChild(defs);
 
@@ -547,13 +560,24 @@
         if (!a.node || !(b.node || b.open)) continue;
         if (b.node && b.node.previousId !== a.node.id) continue;
 
-        const pa = pos(a.s);
-        const pb = pos(b.s);
-        const path = vertical
-          ? "M " + pa.x + " " + pa.y + " C " + pa.x + " " + (pa.y + (pb.y - pa.y) * 0.5) + ", " +
-            pb.x + " " + (pb.y - (pb.y - pa.y) * 0.5) + ", " + pb.x + " " + pb.y
-          : "M " + pa.x + " " + pa.y + " C " + (pa.x + (pb.x - pa.x) * 0.5) + " " + pa.y + ", " +
-            (pb.x - (pb.x - pa.x) * 0.5) + " " + pb.y + ", " + pb.x + " " + pb.y;
+        const ca = center(a.s);
+        const cb = center(b.s);
+
+        let x1, y1, x2, y2, path;
+
+        if (vertical) {
+          x1 = ca.x; y1 = ca.y + ch / 2;
+          x2 = cb.x; y2 = cb.y - ch / 2;
+          path = "M " + x1 + " " + y1 +
+            " C " + x1 + " " + (y1 + (y2 - y1) / 2) + ", " +
+            x2 + " " + (y2 - (y2 - y1) / 2) + ", " + x2 + " " + y2;
+        } else {
+          x1 = ca.x + cw / 2; y1 = ca.y;
+          x2 = cb.x - cw / 2; y2 = cb.y;
+          path = "M " + x1 + " " + y1 +
+            " C " + (x1 + (x2 - x1) / 2) + " " + y1 + ", " +
+            (x2 - (x2 - x1) / 2) + " " + y2 + ", " + x2 + " " + y2;
+        }
 
         const id = "m" + (maskSeq++);
         const mask = svgEl("mask", {
@@ -565,14 +589,13 @@
         mask.appendChild(mp);
         defs.appendChild(mask);
 
-        const vis = svgEl("path", {
+        svg.appendChild(svgEl("path", {
           d: path,
           class: "edge" + (b.open ? " soft" : ""),
           mask: "url(#" + id + ")"
-        });
-        svg.appendChild(vis);
+        }));
 
-        // 연결선이 앞 응답에서 뒤 응답으로 그려지는 애니메이션
+        // 앞 응답에서 뒤 응답으로 선이 그려지는 애니메이션
         if (!reduceMotion) {
           const len = mp.getTotalLength();
           mp.style.strokeDasharray = len;
@@ -588,13 +611,12 @@
         }
       }
 
-      /* 응답 */
+      /* 응답 카드 */
       slots.forEach(function(o) {
         if (!o.node && !o.open) return;
 
-        const p = pos(o.s);
+        const p = center(o.s);
         const isFocus = o.s === 0;
-        const size = isFocus ? dFocus : d;
         const delay = Math.abs(o.s) * 200;
 
         let card;
@@ -610,11 +632,13 @@
           card.setAttribute("aria-label", "응답 " + (o.i + 1));
           if (isFocus) card.classList.add("focus");
           if (Math.abs(o.s) === 2) card.classList.add("far");
-          if (o.node.id === myId) card.classList.add("mine");
 
-          card.appendChild(el("div", "node-index", pad(o.i)));
+          let label = pad(o.i);
+          if (isFocus && fmtTime(o.node.timestamp)) label += " · " + fmtTime(o.node.timestamp);
+          if (o.node.id === myId) label += " · 나의 응답";
+
+          card.appendChild(el("div", "node-index", label));
           card.appendChild(el("div", "node-text", o.node.text));
-          if (isFocus) card.appendChild(el("div", "node-time", fmtTime(o.node.timestamp)));
 
           card.style.animationDelay = delay + "ms";
           card.addEventListener("click", function() {
@@ -625,9 +649,10 @@
 
         card.style.left = p.x + "px";
         card.style.top = p.y + "px";
-        card.style.width = size + "px";
-        card.style.height = size + "px";
-        card.style.fontSize = (size >= 140 ? 12.5 : size >= 110 ? 11.5 : 10.5) + "px";
+        card.style.width = cw + "px";
+        card.style.height = ch + "px";
+        card.style.fontSize = FS + "px";
+        card.style.setProperty("--lines", lines);
 
         stage.appendChild(card);
       });
