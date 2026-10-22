@@ -1,476 +1,377 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f7f5">
-  <title>전시 &lt;설명하지 않는다&gt; 응답 아카이브</title>
 
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      color-scheme: dark;
+      --bg: #101010;
+      --panel: #1b1b1b;
+      --text: #f1eee7;
+      --muted: #858585;
+      --line: #68645d;
+      --accent: #d8ff65;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
-      min-height: 100vh;
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f7f7f5;
-      color: #222;
+      background: var(--bg);
+      color: var(--text);
       font-family: Arial, "Noto Sans KR", sans-serif;
-      overflow: hidden;
     }
 
-    /* 점 + 점선 배경 */
-    #web {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-    .node { fill: #222; transform-box: fill-box; transform-origin: center; }
-    .node.fade { animation: pop .6s ease both; }
-    .node.latest { animation: pop .6s ease both, pulse 2s ease-in-out .8s infinite; }
-    .link {
-      stroke: #222;
-      stroke-width: 1.5;
-      stroke-linecap: round;
-      stroke-dasharray: 1 7;
-      opacity: .45;
-    }
-    .link.fade { animation: fadeLine .8s ease both; }
-
-    /* 아직 이어지지 않은 "다음 연결" 미리보기: 흐린 점선 + 속이 빈 점 */
-    .link.ghost {
-      opacity: .22;
-      stroke-dasharray: 1 12;
-      animation: ghostLine 1s ease both;
-    }
-    .node.ghost {
-      fill: none;
-      stroke: #222;
-      stroke-width: 1.2;
-      opacity: .4;
-      animation: ghostIn 1s ease both, ghostPulse 2.6s ease-in-out 1s infinite;
+    header {
+      padding: 30px 36px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 20px;
     }
 
-    @keyframes pop {
-      from { opacity: 0; transform: scale(0); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%      { opacity: .35; }
-    }
-    @keyframes fadeLine {
-      from { opacity: 0; }
-      to   { opacity: .45; }
-    }
-    @keyframes ghostLine {
-      from { opacity: 0; }
-      to   { opacity: .22; }
-    }
-    @keyframes ghostIn {
-      from { opacity: 0; transform: scale(0); }
-      to   { opacity: .4; transform: scale(1); }
-    }
-    @keyframes ghostPulse {
-      0%, 100% { opacity: .25; transform: scale(.9); }
-      50%      { opacity: .55; transform: scale(1.2); }
-    }
-
-    main {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 440px;
-      transition: opacity .6s ease, transform .6s ease;
-    }
-    main.hide {
-      opacity: 0;
-      transform: translateY(12px);
-      pointer-events: none;
-    }
-
-    h1 {
-      font-size: 30px;
-      font-weight: 600;
-      letter-spacing: -1px;
+    .eyebrow {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.18em;
       margin-bottom: 12px;
     }
 
-    textarea {
-      display: block;
-      width: 100%;
-      min-height: 200px;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #fff;
-      font: inherit;
-      font-size: 16px;
-      line-height: 1.7;
-      resize: vertical;
-      outline: none;
+    h1 {
+      font-size: clamp(25px, 4vw, 48px);
+      font-weight: 400;
+      margin: 0;
+      letter-spacing: -0.05em;
     }
-    textarea:focus { border-color: #555; }
 
-    #submitButton {
-      width: 100%;
-      margin-top: 14px;
-      padding: 16px;
-      border: 0;
-      border-radius: 10px;
-      background: #222;
-      color: white;
+    #count {
+      color: var(--accent);
       font-size: 15px;
-      cursor: pointer;
+      white-space: nowrap;
     }
-    #submitButton:disabled { opacity: .5; cursor: wait; }
+
+    .description {
+      margin: 0;
+      padding: 0 36px 26px;
+      color: #aaa69f;
+      font-size: 13px;
+      line-height: 1.8;
+    }
 
     #status {
-      min-height: 24px;
-      margin-top: 12px;
-      color: #b42318;
-      font-size: 13px;
-      line-height: 1.6;
+      padding: 0 36px 18px;
+      font-size: 11px;
+      color: var(--muted);
     }
 
-    /* 전송 후 문구 + 돌아가기 버튼 */
-    #after {
-      position: fixed;
-      left: 0; right: 0; bottom: 8vh;
-      z-index: 2;
+    #viewport {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 25px 36px 60px;
+      min-height: 300px;
+      scrollbar-color: #565656 var(--bg);
+    }
+
+    #network {
+      display: flex;
+      align-items: center;
+      width: max-content;
+      min-height: 220px;
+    }
+
+    .node {
+      width: 220px;
+      min-height: 190px;
+      flex: 0 0 220px;
+      border: 1px solid #45433e;
+      background: var(--panel);
+      padding: 19px;
+      position: relative;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1s ease;
+      gap: 14px;
     }
-    #after.show { opacity: 1; }
-    #after.show #backButton { pointer-events: auto; }
 
-    #thanks {
-      max-width: 520px;
-      padding: 0 24px;
-      text-align: center;
-      color: #555;
-      font-size: 14px;
+    .node:first-child {
+      border-color: var(--accent);
+    }
+
+    .node-index {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+    }
+
+    .node-text {
+      font-size: 16px;
       line-height: 1.8;
-      white-space: pre-line;   /* \n 줄바꿈 반영 */
-      word-break: keep-all;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
     }
 
-    #backButton {
-      padding: 12px 22px;
-      border: 1px solid #222;
-      border-radius: 999px;
-      background: rgba(247, 247, 245, .9);
-      color: #222;
-      font: inherit;
-      font-size: 14px;
-      cursor: pointer;
-      pointer-events: none;
-      transition: background .2s ease, color .2s ease;
+    .node-time {
+      color: var(--muted);
+      font-size: 10px;
+      margin-top: auto;
     }
-    #backButton:hover { background: #222; color: #fff; }
+
+    .connector {
+      width: 55px;
+      height: 1px;
+      background: var(--line);
+      flex: 0 0 55px;
+      position: relative;
+    }
+
+    .connector::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: -4px;
+      width: 8px;
+      height: 8px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      transform: rotate(45deg);
+    }
+
+    #empty {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 40px 0;
+    }
+
+    footer {
+      padding: 18px 36px;
+      color: #777;
+      border-top: 1px solid #292929;
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 24px 20px 16px;
+      }
+
+      .description,
+      #status {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      #viewport {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <svg id="web" aria-hidden="true"></svg>
+  <header>
+    <div>
+      <div class="eyebrow">A CONTINUOUS RESPONSE</div>
+      <h1>응답과 응답 사이</h1>
+    </div>
+    <div id="count">0 RESPONSES</div>
+  </header>
 
-  <main id="formWrap">
-    <h1>응답해주세요.</h1>
-    <form id="responseForm">
-      <textarea
-        id="response"
-        name="response"
-        maxlength="5000"
-        placeholder="응답을 입력해주세요."
-        required
-      ></textarea>
+  <p class="description">
+    하나의 응답은 다음 응답과 연결된다.<br>
+    연결은 계속되고, 아직 도착하지 않은 응답은 열려 있다.
+  </p>
 
-      <button id="submitButton" type="submit">응답하기</button>
-      <div id="status" role="status" aria-live="polite"></div>
-    </form>
+  <div id="status">연결망을 불러오는 중...</div>
+
+  <main id="viewport">
+    <div id="network">
+      <div id="empty">아직 도착한 응답이 없습니다.</div>
+    </div>
   </main>
 
-  <div id="after">
-    <div id="thanks"></div>
-    <button id="backButton" type="button">다시 작성하기</button>
-  </div>
+  <footer>
+    각 카드는 하나의 응답을 나타냅니다.
+    선은 제출 순서에 따른 연결을 나타냅니다.
+  </footer>
 
   <script>
-    const SCRIPT_URL =
-      "https://script.google.com/macros/s/AKfycbxOm-8YuZq9ratK6XxpY0rDaHTKAsN9xumeHzvdQh-37kZd59nWCaFRoVCDmbvmCBKe/exec";
+    const network = document.getElementById("network");
+    const count = document.getElementById("count");
+    const status = document.getElementById("status");
 
-    const MAX_NODES = 80;   // 화면에 그릴 최대 점 개수 (최근 것만)
-    const BRANCHES = true;  // true: 직전 점 외에 이전 응답 하나와도 연결 (그물 모양)
-    const SVG_NS = "http://www.w3.org/2000/svg";
+    let lastSignature = "";
 
-    const form = document.getElementById("responseForm");
-    const input = document.getElementById("response");
-    const button = document.getElementById("submitButton");
-    const statusEl = document.getElementById("status");
-    const formWrap = document.getElementById("formWrap");
-    const after = document.getElementById("after");
-    const thanks = document.getElementById("thanks");
-    const backButton = document.getElementById("backButton");
-    const svg = document.getElementById("web");
+    function makeElement(tag, className, text) {
+      const el = document.createElement(tag);
 
-    let submitting = false;
-    let totalCount = 0;   // 시트에 쌓인 응답 수
-    let timers = [];
-    let ghostTimer = null;
+      if (className) el.className = className;
+      if (text !== undefined) el.textContent = text;
 
-    /* ---------- 위치: 번호마다 항상 같은 자리 ---------- */
-    function rand(seed) {
-      let t = (seed += 0x6d2b79f5);
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    }
-    function posOf(index) {
-      const w = window.innerWidth, h = window.innerHeight;
-      return {
-        x: w * (0.06 + rand(index * 2 + 1) * 0.88),
-        y: h * (0.08 + rand(index * 2 + 2) * 0.84)
-      };
+      return el;
     }
 
-    // i번째 응답이 (직전 점 말고) 추가로 이어지는 이전 응답 번호. 없으면 -1
-    // 번호로 정해지므로 새로고침해도 같은 그물이 나온다.
-    function branchOf(i) {
-      if (!BRANCHES || i < 2) return -1;
-      return Math.floor(rand(i * 7 + 3) * (i - 1)); // 0 ~ i-2
+    function formatTime(value) {
+      if (!value) return "";
+
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) return "";
+
+      return date.toLocaleString("ko-KR", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
     }
 
-    /* ---------- 그리기 ---------- */
-    function makeNode(p, cls) {
-      const c = document.createElementNS(SVG_NS, "circle");
-      c.setAttribute("cx", p.x);
-      c.setAttribute("cy", p.y);
-      c.setAttribute("r", 4);
-      c.setAttribute("class", "node " + (cls || ""));
-      return c;
-    }
-    function makeLink(a, b, cls) {
-      const l = document.createElementNS(SVG_NS, "line");
-      l.setAttribute("x1", a.x); l.setAttribute("y1", a.y);
-      l.setAttribute("x2", b.x); l.setAttribute("y2", b.y);
-      l.setAttribute("class", "link " + (cls || ""));
-      return l;
-    }
-
-    // 다음 사람이 이어질 자리를 흐린 점선과 빈 점으로 미리 보여줌
-    function clearGhost() {
-      svg.querySelectorAll(".ghost").forEach((n) => n.remove());
-    }
-    function drawGhost() {
-      clearGhost();
-      if (totalCount === 0) return;
-      const a = posOf(totalCount - 1);
-      const b = posOf(totalCount);
-      svg.insertBefore(makeLink(a, b, "ghost"), svg.firstChild);
-      svg.appendChild(makeNode(b, "ghost"));
-    }
-
-    // 기존 응답들을 순서대로 점선으로 연결해서 그림 (마지막 점은 깜빡임)
-    function renderAll(animate) {
-      clearTimeout(ghostTimer);
-      svg.innerHTML = "";
-      const start = Math.max(0, totalCount - MAX_NODES);
-
-      for (let i = start; i < totalCount; i++) {
-        const p = posOf(i);
-        const delay = (i - start) * 40 + "ms";
-
-        if (i > start) {
-          const link = makeLink(posOf(i - 1), p, animate ? "fade" : "");
-          if (animate) link.style.animationDelay = delay;
-          svg.appendChild(link);
-        }
-
-        const b = branchOf(i);
-        if (b >= start) {
-          const bLink = makeLink(posOf(b), p, animate ? "fade" : "");
-          if (animate) bLink.style.animationDelay = delay;
-          svg.appendChild(bLink);
-        }
-
-        const isLast = i === totalCount - 1;
-        const cls = isLast ? "latest" : (animate ? "fade" : "");
-        const node = makeNode(p, cls);
-        if (animate) node.style.animationDelay = delay;
-        svg.appendChild(node);
+    function renderGraph(data) {
+      if (!data || !data.ok || !Array.isArray(data.nodes)) {
+        throw new Error("연결망 데이터 형식이 올바르지 않습니다.");
       }
 
-      // 점들이 다 그려진 뒤에 "다음 연결" 미리보기 등장
-      const wait = animate ? (totalCount - start) * 40 + 600 : 0;
-      ghostTimer = setTimeout(drawGhost, wait);
-    }
+      const nodes = data.nodes;
 
-    // 새 응답: 이전 점에서 새 점까지 점선이 쭉 뻗어나감
-    function connectNew() {
-      const newIndex = totalCount;
-      const to = posOf(newIndex);
-      const from = newIndex > 0 ? posOf(newIndex - 1) : to;
+      // 데이터가 달라졌을 때만 화면을 다시 그린다.
+      const signature = nodes
+        .map(node => node.id + ":" + node.previousId)
+        .join("|");
 
-      // 미리보기 점선은 지금 이어지는 선이 되므로 치우고, 이전 깜빡임은 멈춤
-      clearTimeout(ghostTimer);
-      clearGhost();
-      svg.querySelectorAll(".node.latest").forEach((n) => {
-        n.setAttribute("class", "node");
+      count.textContent = nodes.length + " RESPONSES";
+
+      if (signature === lastSignature) {
+        status.textContent = "연결망 실시간 업데이트 · " +
+          new Date().toLocaleTimeString("ko-KR");
+        return;
+      }
+
+      lastSignature = signature;
+      network.replaceChildren();
+
+      if (nodes.length === 0) {
+        network.appendChild(
+          makeElement("div", "node-text", "아직 도착한 응답이 없습니다.")
+        );
+
+        status.textContent = "새 응답을 기다리는 중";
+        return;
+      }
+
+      // 이전 응답 ID를 기준으로 연결 순서를 구성한다.
+      const byId = new Map(nodes.map(node => [node.id, node]));
+      const children = new Map();
+
+      nodes.forEach(node => {
+        if (!children.has(node.previousId)) {
+          children.set(node.previousId, []);
+        }
+
+        if (node.previousId && byId.has(node.previousId)) {
+          children.get(node.previousId).push(node);
+        }
       });
 
-      const line = makeLink(from, from);
-      svg.insertBefore(line, svg.firstChild);
+      // 가장 앞선 응답부터 연결을 따라간다.
+      const ordered = [];
+      const visited = new Set();
 
-      // 추가 연결선 (이전 응답 중 하나와)
-      const b = branchOf(newIndex);
-      const visibleStart = Math.max(0, newIndex + 1 - MAX_NODES);
-      if (b >= visibleStart) {
-        const bLink = makeLink(posOf(b), to, "fade");
-        bLink.style.animationDelay = "900ms";
-        svg.insertBefore(bLink, svg.firstChild);
+      function walk(node) {
+        if (!node || visited.has(node.id)) return;
+
+        visited.add(node.id);
+        ordered.push(node);
+
+        const nextNodes = children.get(node.id) || [];
+
+        nextNodes.forEach(walk);
       }
 
-      const duration = 1400;
-      const t0 = performance.now();
+      const roots = nodes.filter(
+        node => !node.previousId || !byId.has(node.previousId)
+      );
 
-      function step(now) {
-        const t = Math.min((now - t0) / duration, 1);
-        const e = 1 - Math.pow(1 - t, 3); // easeOutCubic
-        line.setAttribute("x2", from.x + (to.x - from.x) * e);
-        line.setAttribute("y2", from.y + (to.y - from.y) * e);
-        if (t < 1) {
-          requestAnimationFrame(step);
-        } else {
-          svg.appendChild(makeNode(to, "latest"));
-          drawGhost(); // 새 점 뒤로 또 이어질 가능성
-        }
-      }
-      requestAnimationFrame(step);
+      roots.forEach(walk);
 
-      totalCount += 1;
-    }
+      // 연결이 끊긴 데이터도 화면에서 누락하지 않는다.
+      nodes.forEach(node => {
+        if (!visited.has(node.id)) walk(node);
+      });
 
-    /* ---------- 시트의 응답 개수 불러오기 ---------- */
-    async function fetchCount() {
-      try {
-        const res = await fetch(SCRIPT_URL);
-        const data = await res.json();
-        if (data.ok) totalCount = Number(data.count) || 0;
-      } catch (e) {
-        console.error(e); // 실패해도 폼은 정상 동작
-      }
-    }
+      ordered.forEach((node, index) => {
+        if (index > 0) {
+          const previous = ordered[index - 1];
 
-    (async () => {
-      await fetchCount();
-      renderAll(true);
-    })();
+          const isConnected =
+            node.previousId === previous.id;
 
-    window.addEventListener("resize", () => renderAll(false));
+          const connector = makeElement(
+            "div",
+            "connector"
+          );
 
-    /* ---------- 문장 줄이기 ---------- */
-    function clip(text, max) {
-      const chars = Array.from(text.replace(/\s+/g, " "));
-      return chars.length > max ? chars.slice(0, max).join("") + "…" : chars.join("");
-    }
-
-    /* ---------- 전송 ---------- */
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (submitting) return;
-
-      const response = input.value.trim();
-
-      if (!response) {
-        statusEl.textContent = "응답을 입력해주세요.";
-        return;
-      }
-      if (response.length > 5000) {
-        statusEl.textContent = "응답은 5000자 이내로 작성해주세요.";
-        return;
-      }
-
-      submitting = true;
-      button.disabled = true;
-      button.textContent = "전송 중...";
-      statusEl.textContent = "";
-
-      try {
-        const res = await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=UTF-8" },
-          body: JSON.stringify({ response: response })
-        });
-
-        const result = await res.json();
-        if (!result.ok) throw new Error(result.error || "저장 실패");
-
-        // 서버가 알려준 정확한 순번으로 맞춤 (그 사이 다른 사람이 제출했을 수 있음)
-        if (Number(result.count) > 0) {
-          totalCount = Number(result.count) - 1; // 방금 응답을 뺀, 이전 응답 수
-          renderAll(false);
-        }
-        const prev = String(result.prev || "").trim(); // 바로 전 사람의 문장
-
-        // 폼 사라지고 → 점선이 이어짐 → 문구와 버튼 등장
-        formWrap.classList.add("hide");
-        timers.push(setTimeout(connectNew, 500));
-        timers.push(setTimeout(() => {
-          const before = totalCount - 1; // 방금 응답 이전에 있던 응답 수
-          if (before > 0 && prev) {
-            thanks.textContent =
-              "당신의 응답이 이 문장 뒤에 이어졌어요.\n" +
-              "“" + clip(prev, 60) + "”\n" +
-              "지금까지 " + before + "개의 응답이 이어져 있어요.";
-          } else if (before > 0) {
-            thanks.textContent = "당신의 응답이 " + before + "개의 응답과 이어졌어요.";
-          } else {
-            thanks.textContent = "첫 번째 응답이에요.";
+          if (!isConnected) {
+            connector.style.background = "transparent";
+            connector.style.borderTop = "1px dashed #68645d";
           }
-          after.classList.add("show");
-        }, 2000));
 
-      } catch (error) {
-        console.error(error);
-        submitting = false;
-        button.disabled = false;
-        button.textContent = "응답하기";
-        statusEl.textContent = "전송하지 못했습니다. 잠시 후 다시 시도해주세요.";
-      }
-    });
+          network.appendChild(connector);
+        }
 
-    /* ---------- 처음 화면으로 돌아가기 ---------- */
-    backButton.addEventListener("click", async () => {
-      timers.forEach(clearTimeout);
-      timers = [];
+        const card = makeElement("article", "node");
 
-      after.classList.remove("show");
+        card.appendChild(
+          makeElement(
+            "div",
+            "node-index",
+            "RESPONSE " + String(index + 1).padStart(3, "0")
+          )
+        );
 
-      // 입력창 초기화
-      input.value = "";
-      statusEl.textContent = "";
-      button.disabled = false;
-      button.textContent = "응답하기";
-      submitting = false;
+        card.appendChild(
+          makeElement("div", "node-text", node.text)
+        );
 
-      // 그 사이 다른 사람이 남긴 응답까지 반영해서 다시 그림
-      await fetchCount();
-      renderAll(true);
+        card.appendChild(
+          makeElement("div", "node-time", formatTime(node.timestamp))
+        );
 
-      formWrap.classList.remove("hide");
-      setTimeout(() => input.focus(), 600);
-    });
+        network.appendChild(card);
+      });
+
+      status.textContent =
+        "연결망 실시간 업데이트 · " +
+        new Date().toLocaleTimeString("ko-KR");
+
+      // 최신 응답을 바로 확인할 수 있도록 끝으로 이동한다.
+      document.getElementById("viewport").scrollLeft =
+        document.getElementById("viewport").scrollWidth;
+    }
+
+    function loadGraph() {
+      google.script.run
+        .withSuccessHandler(renderGraph)
+        .withFailureHandler(error => {
+          status.textContent =
+            "연결망을 불러오지 못했습니다. " +
+            (error && error.message ? error.message : "");
+        })
+        .getGraphData();
+    }
+
+    loadGraph();
+    setInterval(loadGraph, 5000);
   </script>
 </body>
 </html>
